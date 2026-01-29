@@ -1,3 +1,9 @@
+import { useState } from 'react'
+import './App.css'
+import LinkDevice from './components/LinkDevice.jsx';
+import MobileSetup from './pages/MobileSetup.jsx';
+import MobileHome from './pages/MobileHome.jsx';
+import MobileScanner from './pages/MobileScanner.jsx'
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
@@ -5,13 +11,9 @@ import './App.css';
 import Login from './pages/Login.jsx';       // Check if your file is in /pages or /components
 import Register from './pages/Register.jsx';
 
-// Your existing imports
-import LinkDevice from './components/LinkDevice.jsx';
-import MobileSetup from './pages/MobileSetup.jsx';
-import MobileHome from './pages/MobileHome.jsx';
-import MobileScanner from './pages/MobileScanner.jsx';
-
 function App() {
+  const [count, setCount] = useState(0)
+
     return (
         <Routes>
             {/* Public Routes */}
@@ -35,4 +37,4 @@ function App() {
     );
 }
 
-export default App;
+export default App
