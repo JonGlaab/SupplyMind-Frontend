@@ -2,10 +2,10 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import LinkDevice from './components/LinkDevice.js';
-import MobileSetup from './pages/MobileSetup.js';
-import MobileHome from './pages/MobileHome';
-import MobileScanner from './pages/MobileScanner'
+import LinkDevice from './components/LinkDevice.jsx';
+import MobileSetup from './pages/MobileSetup.jsx';
+import MobileHome from './pages/MobileHome.jsx';
+import MobileScanner from './pages/MobileScanner.jsx'
 
 function App() {
   const [count, setCount] = useState(0)

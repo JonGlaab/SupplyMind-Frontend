@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
-import DesktopLogin from '../components/DesktopLogin'; // Importing the .js component
+import DesktopLogin from '../components/DesktopLogin.jsx'; // Importing the .js component
 
 const Login = () => {
     const navigate = useNavigate();
