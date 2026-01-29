@@ -4,7 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import LinkDevice from './components/LinkDevice.js';
 import MobileSetup from './pages/MobileSetup.js';
-import MobileHome from './pages/MobileHome';     
+import MobileHome from './pages/MobileHome';
 import MobileScanner from './pages/MobileScanner'
 
 function App() {
