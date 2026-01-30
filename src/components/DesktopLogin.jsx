@@ -26,8 +26,8 @@ const DesktopLogin = () => {
 
         console.log("Using WebSocket:", socketUrl);
 
-        const socket = new SockJS(socketUrl);
-        const client = Stomp.over(socket);
+        const socket = new SockJS(`${serverRootUrl}/ws-auth`);
+        const client = Stomp.over(() => socket);
 
         client.debug = () => {};
 
