@@ -21,11 +21,10 @@ const Login = () => {
         try {
             const res = await api.post('/auth/login', formData);
             localStorage.setItem('token', res.data.token);
-            navigate('/dashboard');
+            // redirects Admin to new Admin Dashboard where he can add users.
+            navigate('/admin/dashboard');
         } catch (err) {
-            setError("Invalid credentials.");
-        } finally {
-            setIsLoading(false);
+            setError("Invalid credentials. Please try again.");
         }
     };
 

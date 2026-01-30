@@ -1,15 +1,14 @@
 import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
+
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
 import LinkDevice from './components/LinkDevice.jsx';
 import MobileSetup from './pages/MobileSetup.jsx';
 import MobileHome from './pages/MobileHome.jsx';
 import MobileScanner from './pages/MobileScanner.jsx'
-import { Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-
-// 1. You MUST import these or the app will crash/show nothing
-import Login from './pages/Login.jsx';       // Check if your file is in /pages or /components
-import Register from './pages/Register.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -33,6 +32,9 @@ function App() {
 
             {/* Default redirect: if user hits '/', they go to '/login' */}
             <Route path="*" element={<Navigate to="/login" />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
     );
 }
