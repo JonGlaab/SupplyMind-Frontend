@@ -18,8 +18,12 @@ const DesktopLogin = () => {
         const fullApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 
-        const serverRootUrl = fullApiUrl.replace(/\/api$/, '');
+        let serverRootUrl = fullApiUrl.replace(/\/api$/, '');
 
+        // If we are on a secure site (Heroku) but the URL is insecure, force it to https
+        if (window.location.protocol === 'https:' && serverRootUrl.startsWith('http:')) {
+            serverRootUrl = serverRootUrl.replace('http:', 'https:');
+        }
 
         const socket = new SockJS(`${serverRootUrl}/ws-auth`);
         const client = Stomp.over(socket);

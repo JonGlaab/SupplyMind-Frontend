@@ -22,7 +22,7 @@ function App() {
             {/* Protected Desktop Route */}
             <Route path="/link-device" element={<LinkDevice />} />
 
-            {/* Mobile "Companion" Routes */}
+            {/* Mobile Routes */}
             <Route path="/mobile/setup" element={<MobileSetup />} />
             <Route path="/mobile/home" element={<MobileHome />} />
             <Route path="/mobile/scanner" element={<MobileScanner />} />
@@ -30,7 +30,7 @@ function App() {
             {/* Dashboard Placeholder */}
             <Route path="/dashboard" element={<div className="p-10 text-2xl">🖥️ Desktop Dashboard</div>} />
 
-            {/* Default redirect */}
+            {/* Default redirect: if user hits '/', they go to '/login' */}
             <Route path="*" element={<Navigate to="/login" />} />
 
             {/* Admin Routes */}
