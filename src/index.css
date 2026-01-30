@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-    /* 1. Define the Color Palette (Matching the Mockup) */
     --color-border: oklch(0.92 0 0);
     --color-input: oklch(0.95 0 0);
     --color-ring: oklch(0.25 0.1 250);

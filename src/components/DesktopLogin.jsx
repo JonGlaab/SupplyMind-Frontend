@@ -1,44 +1,52 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
-import { QRCodeSVG } from 'qrcode.react';
 import { v4 as uuidv4 } from 'uuid';
-import { useNavigate } from 'react-router-dom';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 const DesktopLogin = () => {
-    const [socketId, setSocketId] = useState(null);
     const navigate = useNavigate();
+    const [socketId, setSocketId] = useState('');
     const stompClientRef = useRef(null);
+    const [status, setStatus] = useState('connecting');
 
     useEffect(() => {
-        const tempId = uuidv4();
-        setSocketId(tempId);
+        const newSocketId = uuidv4();
+        setSocketId(newSocketId);
 
 
-        const fullApiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        const ngrokUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '') + '/ws';
+
+        const isSecure = window.location.protocol === 'https:';
 
 
-        let serverRootUrl = fullApiUrl.replace(/\/api$/, '');
+        const socketUrl = isSecure ? ngrokUrl : 'http://localhost:8080/ws';
 
-        // If we are on a secure site (Heroku) but the URL is insecure, force it to https
-        if (window.location.protocol === 'https:' && serverRootUrl.startsWith('http:')) {
-            serverRootUrl = serverRootUrl.replace('http:', 'https:');
-        }
+        console.log("Using WebSocket:", socketUrl);
 
-        const socket = new SockJS(`${serverRootUrl}/ws-auth`);
+        const socket = new SockJS(socketUrl);
         const client = Stomp.over(socket);
 
         client.debug = () => {};
 
         client.connect({}, () => {
-            client.subscribe(`/topic/login/${tempId}`, (message) => {
+            console.log("🟢 WebSocket Connected:", newSocketId);
+            setStatus('ready');
+
+            client.subscribe(`/topic/login/${newSocketId}`, (message) => {
                 const body = JSON.parse(message.body);
                 if (body.token) {
+                    setStatus('success');
                     localStorage.setItem('token', body.token);
-                    alert("Mobile approved! Logging in...");
-                    navigate('/dashboard');
+                    setTimeout(() => navigate('/dashboard'), 1000);
                 }
             });
+        }, (err) => {
+            console.error("🔴 WebSocket Error:", err);
+            // If connection fails (e.g. Ngrok warning page), show QR anyway so user isn't stuck
+            setStatus('ready');
         });
 
         stompClientRef.current = client;
@@ -48,12 +56,28 @@ const DesktopLogin = () => {
         };
     }, [navigate]);
 
+    if (status === 'connecting') {
+        return <Loader2 className="animate-spin text-blue-500" size={48} />;
+    }
+
+    if (status === 'success') {
+        return (
+            <div className="h-40 w-40 flex flex-col items-center justify-center bg-emerald-50 rounded-xl animate-in fade-in zoom-in">
+                <CheckCircle2 className="text-emerald-500 mb-2" size={48} />
+                <span className="text-emerald-700 font-bold text-sm">Approved!</span>
+            </div>
+        );
+    }
+
     return (
-        <div style={{ textAlign: 'center' }}>
-            {socketId ? (
-                <QRCodeSVG value={socketId} size={220} />
-            ) : (
-                <p className="text-gray-500 animate-pulse">Connecting to server...</p>
+        <div className="p-2 bg-white rounded-lg">
+            {socketId && (
+                <QRCodeSVG
+                    value={socketId}
+                    size={160}
+                    level={"H"}
+                    includeMargin={true}
+                />
             )}
         </div>
     );

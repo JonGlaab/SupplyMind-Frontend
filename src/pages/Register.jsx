@@ -8,7 +8,8 @@ import { Loader2 } from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '' });
+    // ✅ Updated: Removed firstName/lastName from state
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -21,10 +22,26 @@ const Register = () => {
 
         try {
             const res = await api.post('/auth/register', formData);
-            localStorage.setItem('token', res.data.token);
+
+            console.log("🔍 Backend Response:", res.data);
+
+
+            const token = res.data.token || res.data.accessToken || res.data.jwt;
+
+            if (!token) {
+
+                console.warn("No token found in response. Backend update required.");
+                throw new Error("Registration successful, but the server didn't send a login token.");
+            }
+
+            localStorage.setItem('token', token);
             navigate('/link-device');
+
         } catch (err) {
-            setError(err.response?.data || "Registration failed. Please try again.");
+            console.error("Registration Error:", err);
+
+            const msg = err.response?.data?.message || err.response?.data || "Registration failed.";
+            setError(typeof msg === 'object' ? JSON.stringify(msg) : msg);
         } finally {
             setIsLoading(false);
         }
@@ -36,7 +53,7 @@ const Register = () => {
                 <CardHeader>
                     <CardTitle className="text-xl">Sign Up</CardTitle>
                     <CardDescription>
-                        Enter your information to create an account
+                        Create your account to access the platform.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -46,16 +63,7 @@ const Register = () => {
                         </div>
                     )}
                     <form onSubmit={handleSubmit} className="grid gap-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">First name</label>
-                                <Input name="firstName" placeholder="Max" required onChange={handleChange} />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">Last name</label>
-                                <Input name="lastName" placeholder="Robinson" required onChange={handleChange} />
-                            </div>
-                        </div>
+
                         <div className="grid gap-2">
                             <label className="text-sm font-medium">Email</label>
                             <Input name="email" type="email" placeholder="m@example.com" required onChange={handleChange} />
@@ -66,7 +74,7 @@ const Register = () => {
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create an account
+                            Create Account
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
