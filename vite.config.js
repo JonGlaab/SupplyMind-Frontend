@@ -9,7 +9,9 @@ export default defineConfig({
         plugins: [['babel-plugin-react-compiler']],
       },
     }),
-  ]
+  ],
+  define: {
+    global: 'window',
+  },
 })
-
 

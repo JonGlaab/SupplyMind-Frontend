@@ -12,12 +12,11 @@ const Login = () => {
         e.preventDefault();
         try {
             const res = await api.post('/auth/login', formData);
-
-            // Standard Login Logic
             localStorage.setItem('token', res.data.token);
-            navigate('/dashboard');
+            // redirects Admin to new Admin Dashboard where he can add users.
+            navigate('/admin/dashboard');
         } catch (err) {
-            setError("Invalid credentials");
+            setError("Invalid credentials. Please try again.");
         }
     };
 

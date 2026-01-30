@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css'
+
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
 import LinkDevice from './components/LinkDevice.jsx';
 import MobileSetup from './pages/MobileSetup.jsx';
 import MobileHome from './pages/MobileHome.jsx';
 import MobileScanner from './pages/MobileScanner.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -29,6 +32,9 @@ function App() {
 
             {/* Default redirect */}
             <Route path="*" element={<Navigate to="/login" />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
     );
 }
