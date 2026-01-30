@@ -16,18 +16,23 @@ const DesktopLogin = () => {
         const newSocketId = uuidv4();
         setSocketId(newSocketId);
 
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
-        const ngrokUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '') + '/ws';
+
+        const serverRootUrl = apiBase.replace('/api', '');
+
 
         const isSecure = window.location.protocol === 'https:';
 
 
-        const socketUrl = isSecure ? ngrokUrl : 'http://localhost:8080/ws';
+        const socketUrl = isSecure
+            ? `${serverRootUrl}/ws`
+            : 'http://localhost:8080/ws';
 
         console.log("Using WebSocket:", socketUrl);
 
-        const socket = new SockJS(`${serverRootUrl}/ws-auth`);
-        const client = Stomp.over(() => socket);
+        const socket = new SockJS(socketUrl);
+        const client = Stomp.over(socket);
 
         client.debug = () => {};
 
@@ -45,7 +50,6 @@ const DesktopLogin = () => {
             });
         }, (err) => {
             console.error("🔴 WebSocket Error:", err);
-            // If connection fails (e.g. Ngrok warning page), show QR anyway so user isn't stuck
             setStatus('ready');
         });
 

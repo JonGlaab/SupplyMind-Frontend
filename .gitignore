@@ -82,8 +82,6 @@ dist-ssr
 # No vscode stuff
 .vscode
 
-# No bundled stuff in git
-lib
 
 # No rollup stuff
 .rts2_cache*
