@@ -18,16 +18,27 @@ export default defineConfig({
         global: 'window',
     },
     server: {
-        host: true,   // Allows your mobile device to find the server
+        host: true,
         port: 5173,
-        https: true,  // Required for the barcode scanner/camera to work
+        https: true,
         proxy: {
-            // Redirects any call starting with /api to your Spring Boot backend
             '/api': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
                 secure: false,
             },
-        },
-    },
+            '/auth': {
+                target: 'http://localhost:8080',
+                changeOrigin: true,
+                secure: false,
+            },
+            // ADD THIS SECTION FOR THE WEBSOCKET
+            '/ws': {
+                target: 'http://localhost:8080',
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            },
+        }
+    }
 })

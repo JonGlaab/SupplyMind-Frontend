@@ -22,6 +22,7 @@ const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Proc
 import MobileSetup from './mobile/MobileSetup.jsx';
 import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
+import {WarehousePortal} from "./pages/core/WarehousePortal.jsx";
 
 const App = () => {
     return (
@@ -33,10 +34,10 @@ const App = () => {
             {/* Root Redirect -> Login */}
             <Route path="/" element={<Navigate to="/login" replace />} />
 
-
             {/* --- 2. The Staff Portal (Teammate's MainLayout) --- */}
             {/* This layout handles its own internal views (Inventory, POs) via state */}
             <Route path="/dashboard" element={<MainLayout />} />
+            <Route path="/warehouse" element={<WarehousePortal />} />
 
             {/* Dedicated Settings Route (Accessible via /settings) */}
             <Route path="/settings" element={
@@ -44,7 +45,6 @@ const App = () => {
                     <Settings />
                 </DashboardLayout>
             } />
-
 
             {/* --- 3. Role-Based Routes (Admin, Manager, Procurement) --- */}
 
@@ -66,17 +66,14 @@ const App = () => {
                 <Route path="settings" element={<Settings />} />
             </Route>
 
-
             {/* --- 4. Mobile Routes --- */}
             <Route path="/mobile" element={<MobileLayout />}>
                 {/* Default to Home */}
                 <Route index element={<Navigate to="home" replace />} />
-
                 <Route path="home" element={<MobileHome />} />
                 <Route path="setup" element={<MobileSetup />} />
                 <Route path="scanner" element={<MobileQRLogin />} />
             </Route>
-
 
             {/* --- 5. Fallback (404) --- */}
             <Route path="*" element={<Navigate to="/login" replace />} />

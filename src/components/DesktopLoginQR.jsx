@@ -16,22 +16,21 @@ const DesktopLoginQR = () => {
         const newSocketId = uuidv4();
         setSocketId(newSocketId);
 
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        const socketUrl = '/ws';
 
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
         const serverRootUrl = apiBase.replace('/api', '');
 
-
         const isSecure = window.location.protocol === 'https:';
 
+        console.log("Using WebSocket via Proxy:", socketUrl);
 
-        const socketUrl = isSecure
-            ? `${serverRootUrl}/ws`
-            : 'http://localhost:8080/ws';
-
-        console.log("Using WebSocket:", socketUrl);
-
-        const socket = new SockJS(socketUrl);
+        // This forces SockJS to use the most reliable transport for proxies
+        const socket = new SockJS('/ws', null, {
+            transports: ['websocket'],
+            timeout: 5000
+        });
         const client = Stomp.over(socket);
 
         client.debug = () => {};
