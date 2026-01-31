@@ -6,7 +6,7 @@ import { Stomp } from '@stomp/stompjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
-const DesktopLogin = () => {
+const DesktopLoginQR = () => {
     const navigate = useNavigate();
     const [socketId, setSocketId] = useState('');
     const stompClientRef = useRef(null);
@@ -87,4 +87,4 @@ const DesktopLogin = () => {
     );
 };
 
-export default DesktopLogin;
+export default DesktopLoginQR;

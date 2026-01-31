@@ -1,83 +1,70 @@
-import {useEffect, useState} from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom';
-import './App.css'
 
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import LinkDevice from './components/LinkDevice.jsx';
+// Layouts
 import DashboardLayout from './layouts/DashboardLayout.jsx';
-import AdminDashboard from './pages/admin/AdminDashboard.jsx';
-// Mobile Components
-import MobileLayout from './mobile/MobileLayout.jsx';
-import MobileSetup from './mobile/MobileSetup.jsx';
-import MobileHome from './mobile/MobileHome.jsx';
-import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
+import MobileLayout from './layouts/MobileLayout.jsx';
 
-const RootRedirect = () => {
-    const [isMobile, setIsMobile] = useState(null);
-    const [debugInfo, setDebugInfo] = useState("");
+// Public & Auth Pages
+import Login from './pages/Login.jsx';
+import ChangePassword from './pages/ChangePassword.jsx';
 
-    useEffect(() => {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        setDebugInfo(ua);
+// Protected Pages
+import Settings from './pages/Settings.jsx';
 
-        const check = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua.toLowerCase());
-        setIsMobile(check);
-    }, []);
 
-    if (isMobile === null) {
-        return (
-            <div className="p-10 text-white bg-slate-900 h-screen">
-                <h1 className="text-xl font-bold text-blue-400 mb-4">Detecting Device...</h1>
-                <p className="text-xs text-slate-500 font-mono break-all">{debugInfo}</p>
-            </div>
-        );
-    }
+const AdminDashboard = () => <div className="p-10 text-2xl font-bold">Admin Dashboard</div>;
+const ManagerDashboard = () => <div className="p-10 text-2xl font-bold">Manager Dashboard</div>;
+const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
+const StandardDashboard = () => <div className="p-10 text-2xl font-bold">My Dashboard</div>;
 
-    return isMobile ? <Navigate to="/mobile/setup" replace /> : <Navigate to="/login" replace />;
-};
-const MobileIndex = () => {
-    const token = localStorage.getItem('token');
-    return token ? <Navigate to="/mobile/home" /> : <Navigate to="/mobile/setup" />;
-};
-
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
     return (
         <Routes>
-            <Route path="/" element={<RootRedirect />} />
-            {/* Public Routes */}
+            {/* --- Public Routes --- */}
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/change-password" element={<ChangePassword />} />
 
-            {/* Protected Desktop Route */}
-            <Route path="/link-device" element={<LinkDevice />} />
+            {/* Root redirects to login */}
+            <Route path="/" element={<Navigate to="/login" />} />
 
-            {/* Mobile Routes */}
-            <Route path="/mobile" element={<MobileLayout />}>
-                <Route index element={<MobileIndex />} />
-                <Route path="setup" element={<MobileSetup />} />
-                <Route path="home" element={<MobileHome />} />
-                <Route path="scanner" element={<MobileQRLogin />} />
-            </Route>
 
-            {/* Dashboard Placeholder */}
+            {/* --- Protected User Routes (All Logged-in Users) --- */}
             <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<div className="text-2xl font-bold">Dashboard Overview</div>} />
-                <Route path="inventory" element={<div>Inventory Table</div>} />
-                <Route path="products" element={<div>Products List</div>} />
-                <Route path="orders" element={<div>Sales Orders</div>} />
-                <Route path="suppliers" element={<div>Suppliers List</div>} />
+                <Route index element={<StandardDashboard />} />
+                <Route path="settings" element={<Settings />} />
             </Route>
 
-            {/* Default redirect: if user hits '/', they go to '/login' */}
-            <Route path="*" element={<Navigate to="/login" />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            {/* --- Admin Routes --- */}
+            <Route path="/admin" element={<DashboardLayout />}>
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="settings" element={<Settings />} />
+
+            </Route>
+
+
+            {/* --- Manager Routes --- */}
+            <Route path="/manager" element={<DashboardLayout />}>
+                <Route path="dashboard" element={<ManagerDashboard />} />
+                <Route path="settings" element={<Settings />} />
+            </Route>
+
+
+            {/* --- Procurement Routes --- */}
+            <Route path="/procurement" element={<DashboardLayout />}>
+                <Route path="dashboard" element={<ProcurementDashboard />} />
+                <Route path="settings" element={<Settings />} />
+            </Route>
+
+
+            {/* --- Mobile App Routes --- */}
+            <Route path="/mobile/*" element={<MobileLayout />} />
+
+
+            {/* --- Fallback (404) --- */}
+            <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
     );
-}
+};
 
-export default App
+export default App;
