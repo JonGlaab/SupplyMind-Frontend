@@ -9,7 +9,8 @@ import {
     LogOut,
     Menu,
     X,
-    Bell
+    Bell,
+    ShieldCheck
 } from 'lucide-react';
 
 const DashboardLayout = () => {
@@ -22,8 +23,15 @@ const DashboardLayout = () => {
         navigate('/login');
     };
 
+    const userRole = localStorage.getItem('role');
+
     const navItems = [
         { label: 'Overview', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+            ...(userRole === 'ADMIN' ? [{
+                label: 'Admin Panel',
+                path: '/admin/dashboard',
+                icon: <ShieldCheck size={20} />
+            }] : []),
         { label: 'Inventory', path: '/dashboard/inventory', icon: <Package size={20} /> },
         { label: 'Products', path: '/dashboard/products', icon: <ShoppingCart size={20} /> },
         { label: 'Orders', path: '/dashboard/orders', icon: <Users size={20} /> },

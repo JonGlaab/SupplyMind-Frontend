@@ -12,9 +12,10 @@ import ChangePassword from './pages/ChangePassword.jsx';
 // Protected Pages
 import Settings from './pages/Settings.jsx';
 
+// Role-Based Dashboards
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 // Role Dashboard Placeholders
 // (You can replace these with real imports like './pages/admin/AdminDashboard.jsx')
-const AdminDashboard = () => <div className="p-10 text-2xl font-bold">Admin Dashboard</div>;
 const ManagerDashboard = () => <div className="p-10 text-2xl font-bold">Manager Dashboard</div>;
 const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 

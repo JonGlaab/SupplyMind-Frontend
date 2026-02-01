@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-muted/40 p-8 text-foreground">
+        <div className="p-8 text-foreground">
             <header className="mb-10 flex justify-between items-center max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold tracking-tight">System Administration</h1>
                 <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold shadow-sm">
