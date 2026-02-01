@@ -31,7 +31,7 @@ const DesktopLoginQR = () => {
             transports: ['websocket'],
             timeout: 5000
         });
-        const client = Stomp.over(socket);
+        const client = Stomp.over(() => socket);
 
         client.debug = () => {};
 
