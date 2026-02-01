@@ -24,7 +24,7 @@ const Login = () => {
         setError('');
 
         try {
-            const res = await api.post('/auth/login', formData);
+            const res = await api.post('/api/auth/login', formData);
             const { token, role, needsPasswordChange } = res.data;
 
             // 1. Save Session

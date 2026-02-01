@@ -23,18 +23,18 @@ export default defineConfig({
         https: true,
         proxy: {
             '/api': {
-                target: 'http://localhost:8080',
+                target: 'http://127.0.0.1:8080',
                 changeOrigin: true,
                 secure: false,
             },
             '/auth': {
-                target: 'http://localhost:8080',
+                target: 'http://127.0.0.1:8080',
                 changeOrigin: true,
                 secure: false,
             },
             // ADD THIS SECTION FOR THE WEBSOCKET
             '/ws': {
-                target: 'http://localhost:8080',
+                target: 'http://127.0.0.1:8080',
                 ws: true,
                 changeOrigin: true,
                 secure: false,
