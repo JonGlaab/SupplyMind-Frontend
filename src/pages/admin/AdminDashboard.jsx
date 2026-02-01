@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import api from '../../services/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
+    const [currentUserEmail, setCurrentUserEmail] = useState('');
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -16,6 +18,17 @@ const AdminDashboard = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setCurrentUserEmail(decoded.sub);
+            } catch (error) {
+                console.error("Invalid token:", error);
+            }
+        }
+
         fetchUsers();
     }, []);
 
@@ -47,6 +60,17 @@ const AdminDashboard = () => {
             fetchUsers();
         } catch (err) {
             setMessage({ type: 'error', text: 'Failed to update role' });
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!window.confirm("Are you sure you want to remove this user?")) return;
+        try {
+            await api.delete(`/admin/users/${userId}`);
+            setMessage({ type: 'success', text: 'User removed from system.' });
+            fetchUsers();
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to delete user' });
         }
     };
 
@@ -125,7 +149,10 @@ const AdminDashboard = () => {
                                 <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
                                 <td className="p-4 flex justify-center gap-2">
                                     <select
-                                        className="text-xs border rounded p-1"
+                                        disabled={user.email === currentUserEmail} // Disables dropdown for the active admin
+                                        className={`text-xs border rounded p-1 bg-background ${
+                                            user.email === currentUserEmail ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                         value={user.role}
                                         onChange={(e) => handleRoleUpdate(user.id, e.target.value)}
                                     >
@@ -134,6 +161,17 @@ const AdminDashboard = () => {
                                         <option value="STAFF">Staff</option>
                                         <option value="PROCUREMENT_OFFICER">Officer</option>
                                     </select>
+
+                                    {user.email !== currentUserEmail && (
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => handleDeleteUser(user.id)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    )}
+
                                 </td>
                             </tr>
                         ))}
