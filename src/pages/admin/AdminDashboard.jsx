@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import api from '../../services/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
