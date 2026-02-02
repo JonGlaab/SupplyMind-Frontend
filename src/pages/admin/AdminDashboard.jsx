@@ -74,6 +74,16 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleResetPassword = async (userId) => {
+        if (!window.confirm("Reset this user's password to '123456'?")) return;
+        try {
+            await api.post(`/api/admin/users/${userId}/reset-password`);
+            setMessage({ type: 'success', text: 'Password reset to default.' });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to reset password.' });
+        }
+    };
+
     return (
         <div className="p-8 text-foreground">
             <header className="mb-10 flex justify-between items-center max-w-7xl mx-auto">
@@ -169,6 +179,17 @@ const AdminDashboard = () => {
                                             onClick={() => handleDeleteUser(user.id)}
                                         >
                                             Delete
+                                        </Button>
+                                    )}
+
+                                    {user.email !== currentUserEmail && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleResetPassword(user.id)}
+                                            className="h-7 px-2 text-[10px] border-blue-200 text-blue-600 hover:bg-blue-50"
+                                        >
+                                            Reset Pass
                                         </Button>
                                     )}
 
