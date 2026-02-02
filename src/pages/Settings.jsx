@@ -12,7 +12,6 @@ const Settings = () => {
         const fetchProfile = async () => {
             try {
                 // 1. Try to fetch real data from backend
-                // Ensure your backend has an endpoint like @GetMapping("/me") that returns User details
                 const res = await api.get('/auth/me');
                 setUser(res.data);
             } catch (error) {
