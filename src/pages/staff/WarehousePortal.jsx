@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx'
+import { Badge } from '../../components/ui/badge.jsx'
+import { Button } from '../../components/ui/button.jsx'
+import { Input } from '../../components/ui/input.jsx'
 import {
     Search,
     PackageCheck,
@@ -106,3 +106,5 @@ export function WarehousePortal() {
         </div>
     )
 }
+
+export default WarehousePortal;

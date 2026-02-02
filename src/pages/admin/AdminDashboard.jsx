@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import api from "../../services/api.js";
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -15,6 +16,28 @@ const AdminDashboard = () => {
         role: 'STAFF'
     });
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            const res = await api.get('/api/admin/users');
+            setUsers(res.data);
+        } catch (err) {
+            console.error("Failed to fetch users", err);
+        }
+    }, []);
+
+
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/api/admin/users', formData);
+            setMessage({ type: 'success', text: 'User created successfully!' });
+            setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'STAFF' });
+            await fetchUsers();
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data || 'Failed to create user' });
+        }
+    };
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -29,32 +52,11 @@ const AdminDashboard = () => {
         }
 
         fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        try {
-            const res = await api.get('api/admin/users');
-            setUsers(res.data);
-        } catch (err) {
-            console.error("Failed to fetch users", err);
-        }
-    };
-
-    const handleCreateUser = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post('api/admin/users', formData);
-            setMessage({ type: 'success', text: 'User created successfully!' });
-            setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'STAFF' });
-            fetchUsers();
-        } catch (err) {
-            setMessage({ type: 'error', text: err.response?.data || 'Failed to create user' });
-        }
-    };
+    }, [fetchUsers]);
 
     const handleRoleUpdate = async (userId, newRole) => {
         try {
-            await api.patch(`api/admin/users/${userId}/role`, { role: newRole });
+            await api.patch(`/api/admin/users/${userId}/role`, { role: newRole });
             setMessage({ type: 'success', text: 'Role updated successfully!' });
             fetchUsers();
         } catch (err) {
@@ -65,7 +67,7 @@ const AdminDashboard = () => {
     const handleDeleteUser = async (userId) => {
         if (!window.confirm("Are you sure you want to remove this user?")) return;
         try {
-            await api.delete(`api/admin/users/${userId}`);
+            await api.delete(`/api/admin/users/${userId}`);
             setMessage({ type: 'success', text: 'User removed from system.' });
             fetchUsers();
         } catch (err) {

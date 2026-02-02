@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
+import api from '../../services/api.js';
 import {Card, CardContent, CardHeader, CardTitle} from "../../components/ui/card.jsx";
 import {Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
-import { Badge } from '../../components/ui/badge';
+import { Badge } from '../../components/ui/badge.jsx';
 import AdminDashboard from "../admin/AdminDashboard.jsx";
 
 export function ManagerDashboard() {
