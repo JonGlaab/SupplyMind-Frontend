@@ -18,13 +18,16 @@ const DesktopLoginQR = () => {
         setSocketId(newSocketId);
 
         const socketUrl = getWebSocketUrl();
-
         console.log("🔵 Connecting to WebSocket at:", socketUrl);
 
-        const socket = new SockJS(socketUrl);
-        const client = Stomp.over(socket);
-        
+        const client = Stomp.over(() => new SockJS(socketUrl));
+
+        // Disable debug logs for cleaner console
         client.debug = () => {};
+
+        // Optional: Tweak heartbeat if connection drops frequently
+        client.heartbeat.outgoing = 20000;
+        client.heartbeat.incoming = 0;
 
         client.connect({}, () => {
             console.log("🟢 WebSocket Connected");
@@ -32,47 +35,83 @@ const DesktopLoginQR = () => {
 
             client.subscribe(`/topic/login/${newSocketId}`, (message) => {
                 const body = JSON.parse(message.body);
+
                 if (body.token) {
+                    console.log("✅ Login Approved!");
                     setStatus('success');
+
                     localStorage.setItem('token', body.token);
+
                     setTimeout(() => navigate('/dashboard'), 1500);
                 }
             });
         }, (err) => {
             console.error("🔴 WebSocket Error:", err);
-            setStatus('error');
+            // Only set error status if we aren't already successful
+            if (status !== 'success') {
+                setStatus('error');
+            }
         });
 
         stompClientRef.current = client;
 
+
         return () => {
-            if (stompClientRef.current) stompClientRef.current.disconnect();
+            if (stompClientRef.current) {
+                console.log("🔵 Disconnecting WebSocket...");
+                stompClientRef.current.disconnect();
+            }
         };
     }, [navigate]);
 
+
     if (status === 'connecting') {
-        return <Loader2 className="animate-spin text-blue-500" size={48} />;
+        return (
+            <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                <Loader2 className="animate-spin text-blue-500" size={48} />
+                <p className="text-slate-500 text-sm">Connecting to Secure Server...</p>
+            </div>
+        );
     }
 
     if (status === 'success') {
         return (
-            <div className="h-40 w-40 flex flex-col items-center justify-center bg-emerald-50 rounded-xl animate-in fade-in zoom-in">
+            <div className="h-40 w-40 flex flex-col items-center justify-center bg-emerald-50 rounded-xl animate-in fade-in zoom-in border border-emerald-100">
                 <CheckCircle2 className="text-emerald-500 mb-2" size={48} />
                 <span className="text-emerald-700 font-bold text-sm">Approved!</span>
+                <span className="text-emerald-600 text-xs">Redirecting...</span>
+            </div>
+        );
+    }
+
+    if (status === 'error') {
+        return (
+            <div className="text-center p-6 text-red-500">
+                <p>Connection Failed.</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-2 text-xs underline hover:text-red-700"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="p-2 bg-white rounded-lg">
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
             {socketId && (
                 <QRCodeSVG
                     value={socketId}
-                    size={160}
+                    size={180}
                     level={"H"}
                     includeMargin={true}
+                    className="mb-4"
                 />
             )}
+            <p className="text-xs text-slate-400 font-medium">
+                Scan with SupplyMind App
+            </p>
         </div>
     );
 };
