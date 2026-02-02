@@ -34,7 +34,7 @@ const AdminDashboard = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await api.get('/admin/users');
+            const res = await api.get('api/admin/users');
             setUsers(res.data);
         } catch (err) {
             console.error("Failed to fetch users", err);
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     const handleCreateUser = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/admin/users', formData);
+            await api.post('api/admin/users', formData);
             setMessage({ type: 'success', text: 'User created successfully!' });
             setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'STAFF' });
             fetchUsers();
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
 
     const handleRoleUpdate = async (userId, newRole) => {
         try {
-            await api.patch(`/admin/users/${userId}/role`, { role: newRole });
+            await api.patch(`api/admin/users/${userId}/role`, { role: newRole });
             setMessage({ type: 'success', text: 'Role updated successfully!' });
             fetchUsers();
         } catch (err) {
@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     const handleDeleteUser = async (userId) => {
         if (!window.confirm("Are you sure you want to remove this user?")) return;
         try {
-            await api.delete(`/admin/users/${userId}`);
+            await api.delete(`api/admin/users/${userId}`);
             setMessage({ type: 'success', text: 'User removed from system.' });
             fetchUsers();
         } catch (err) {
