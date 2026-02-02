@@ -159,7 +159,7 @@ const AdminDashboard = () => {
                                 <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
                                 <td className="p-4 flex justify-center gap-2">
                                     <select
-                                        disabled={user.email === currentUserEmail} // Disables dropdown for the active admin
+                                        disabled={user.email === currentUserEmail}
                                         className={`text-xs border rounded p-1 bg-background ${
                                             user.email === currentUserEmail ? 'opacity-50 cursor-not-allowed' : ''
                                         }`}
@@ -173,26 +173,25 @@ const AdminDashboard = () => {
                                     </select>
 
                                     {user.email !== currentUserEmail && (
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => handleDeleteUser(user.id)}
-                                        >
-                                            Delete
-                                        </Button>
-                                    )}
+                                        <>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleDeleteUser(user.id)}
+                                            >
+                                                Delete
+                                            </Button>
 
-                                    {user.email !== currentUserEmail && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleResetPassword(user.id)}
-                                            className="h-7 px-2 text-[10px] border-blue-200 text-blue-600 hover:bg-blue-50"
-                                        >
-                                            Reset Pass
-                                        </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleResetPassword(user.id)}
+                                                className="h-7 px-2 text-[10px] border-blue-200 text-blue-600 hover:bg-blue-50"
+                                            >
+                                                Reset Pass
+                                            </Button>
+                                        </>
                                     )}
-
                                 </td>
                             </tr>
                         ))}

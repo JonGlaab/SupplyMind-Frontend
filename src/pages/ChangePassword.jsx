@@ -29,9 +29,15 @@ const ChangePassword = () => {
         setIsLoading(true);
 
         try {
+            await api.post('/api/auth/change-password', { newPassword: passwords.new });
+            const role = localStorage.getItem('role');
 
-            await api.post('/auth/change-password', { newPassword: passwords.new });
-            navigate('/dashboard');
+            // Conditional Routing
+            if (role === 'ADMIN') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err) {
             console.error(err);
             setError("Failed to update password. Try again.");
