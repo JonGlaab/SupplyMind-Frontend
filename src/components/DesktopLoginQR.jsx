@@ -5,6 +5,7 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Loader2, CheckCircle2 } from 'lucide-react';
+import { getWebSocketUrl } from '../services/websocket';
 
 const DesktopLoginQR = () => {
     const navigate = useNavigate();
@@ -16,27 +17,17 @@ const DesktopLoginQR = () => {
         const newSocketId = uuidv4();
         setSocketId(newSocketId);
 
-        const socketUrl = '/ws';
+        const socketUrl = getWebSocketUrl();
 
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        console.log("🔵 Connecting to WebSocket at:", socketUrl);
 
-        const serverRootUrl = apiBase.replace('/api', '');
-
-        const isSecure = window.location.protocol === 'https:';
-
-        console.log("Using WebSocket via Proxy:", socketUrl);
-
-        // This forces SockJS to use the most reliable transport for proxies
-        const socket = new SockJS('/ws', null, {
-            transports: ['websocket'],
-            timeout: 5000
-        });
-        const client = Stomp.over(() => socket);
-
+        const socket = new SockJS(socketUrl);
+        const client = Stomp.over(socket);
+        
         client.debug = () => {};
 
         client.connect({}, () => {
-            console.log("🟢 WebSocket Connected:", newSocketId);
+            console.log("🟢 WebSocket Connected");
             setStatus('ready');
 
             client.subscribe(`/topic/login/${newSocketId}`, (message) => {
@@ -44,12 +35,12 @@ const DesktopLoginQR = () => {
                 if (body.token) {
                     setStatus('success');
                     localStorage.setItem('token', body.token);
-                    setTimeout(() => navigate('/dashboard'), 1000);
+                    setTimeout(() => navigate('/dashboard'), 1500);
                 }
             });
         }, (err) => {
             console.error("🔴 WebSocket Error:", err);
-            setStatus('ready');
+            setStatus('error');
         });
 
         stompClientRef.current = client;

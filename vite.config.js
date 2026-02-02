@@ -6,7 +6,10 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '')
-    const apiUrl = env.VITE_API_BASE_URL || 'http://127.0.0.1:8080';
+    const rawUrl = env.VITE_API_BASE_URL || 'http://127.0.0.1:8080';
+    const frontendPort = parseInt(env.PORT) || 5173;
+
+    const targetRoot = rawUrl.replace(/\/api\/?$/, '');
 
     return {
         plugins: [
@@ -23,21 +26,21 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             host: true,
-            port: 5173,
+            port: frontendPort,
             https: true,
             proxy: {
                 '/api': {
-                    target: apiUrl, // Uses the .env value
+                    target: targetRoot,
                     changeOrigin: true,
                     secure: false,
                 },
                 '/auth': {
-                    target: apiUrl,
+                    target: targetRoot,
                     changeOrigin: true,
                     secure: false,
                 },
                 '/ws': {
-                    target: apiUrl,
+                    target: targetRoot,
                     ws: true, 
                     changeOrigin: true,
                     secure: false,
