@@ -1,8 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
-import MainLayout from './layouts/MainLayout.jsx'; // Teammate's new switcher
-import DashboardLayout from './layouts/DashboardLayout.jsx'; // Our generic layout
+import DashboardLayout from './layouts/DashboardLayout.jsx';
 import MobileLayout from './layouts/MobileLayout.jsx';
 
 // Public & Auth Pages
@@ -15,8 +14,7 @@ import Settings from './pages/Settings.jsx';
 // Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 // Role Dashboard Placeholders
-// (You can replace these with real imports like './pages/admin/AdminDashboard.jsx')
-const ManagerDashboard = () => <div className="p-10 text-2xl font-bold">Manager Dashboard</div>;
+import ManagerDashboard from './pages/core/ManagerDashboard.jsx';
 const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 
 // Mobile Component Placeholders (Ensure these files exist or adjust imports)
@@ -24,6 +22,7 @@ import MobileSetup from './mobile/MobileSetup.jsx';
 import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 import {WarehousePortal} from "./pages/core/WarehousePortal.jsx";
+import DashboardLayoutLayout from "./layouts/DashboardLayout.jsx";
 
 const App = () => {
     return (
@@ -37,7 +36,7 @@ const App = () => {
 
             {/* --- 2. The Staff Portal (Teammate's MainLayout) --- */}
             {/* This layout handles its own internal views (Inventory, POs) via state */}
-            <Route path="/dashboard" element={<MainLayout />} />
+            <Route path="/dashboard" element={<DashboardLayoutLayout />} />
             <Route path="/warehouse" element={<WarehousePortal />} />
 
             {/* Dedicated Settings Route (Accessible via /settings) */}
