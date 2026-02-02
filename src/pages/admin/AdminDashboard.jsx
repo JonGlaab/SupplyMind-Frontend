@@ -182,10 +182,9 @@ const AdminDashboard = () => {
                                             </Button>
 
                                             <Button
-                                                variant="outline"
+                                                variant="default"
                                                 size="sm"
                                                 onClick={() => handleResetPassword(user.id)}
-                                                className="h-7 px-2 text-[10px] border-blue-200 text-blue-600 hover:bg-blue-50"
                                             >
                                                 Reset Pass
                                             </Button>
