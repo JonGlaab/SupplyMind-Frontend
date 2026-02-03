@@ -27,60 +27,55 @@ import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
 import {InventoryView} from "./pages/core/InventoryView.jsx";
 
 const App = () => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole'); // Or decode from token
+    const isAuthenticated = !!token;
+
     return (
         <Routes>
-            {/* --- 1. Public Routes --- */}
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/change-password" element={<ChangePassword />} />
 
-            {/* Root Redirect -> Login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Shared Dashboard Routes */}
+            <Route path="/" element={<DashboardLayout />}>
+                {/* Redirect base / to a default based on role logic later, or just login */}
+                <Route index element={<Navigate to="/login" replace />} />
 
-            {/* --- 2. The Staff Portal (Teammate's MainLayout) --- */}
-            {/* This layout handles its own internal views (Inventory, POs) via state */}
-            <Route path="/dashboard" element={<DashboardLayout />} />
-
-            <Route path="/warehouse" element={<DashboardLayout />}>
-                <Route path="dashboard" element={<WarehousePortal />} />
-                <Route path="inventoryview" element={<InventoryView />} />
-            </Route>
-
-            {/* Dedicated Settings Route (Accessible via /settings) */}
-            <Route path="/settings" element={<DashboardLayout />}>
-                <Route index element={<Settings />} />
-            </Route>
-
-            {/* --- 3. Role-Based Routes (Admin, Manager, Procurement) --- */}
-
-            {/* Admin Area */}
-            <Route path="/admin" element={<DashboardLayout />}>
-                <Route path="dashboard" element={<AdminDashboard />} />
+                {/* SHARED: Everyone goes to the same settings page */}
                 <Route path="settings" element={<Settings />} />
+
+                {/* ADMIN */}
+                <Route path="admin/dashboard" element={<AdminDashboard />} />
+
+                {/* MANAGER */}
+                <Route path="manager/dashboard" element={<ManagerDashboard />} />
+
+                {/* PROCUREMENT */}
+                <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
+
+                {/* WAREHOUSE/STAFF */}
+                <Route path="warehouse/dashboard" element={<WarehousePortal />} />
+                <Route path="warehouse/inventory" element={<InventoryView />} />
             </Route>
 
-            {/* Manager Area */}
-            <Route path="/manager" element={<DashboardLayout />}>
-                <Route path="dashboard" element={<ManagerDashboard />} />
-                <Route path="settings" element={<Settings />} />
-            </Route>
-
-            {/* Procurement Area */}
-            <Route path="/procurement" element={<DashboardLayout />}>
-                <Route path="dashboard" element={<ProcurementDashboard />} />
-                <Route path="settings" element={<Settings />} />
-            </Route>
-
-            {/* --- 4. Mobile Routes --- */}
+            {/* Mobile Routes */}
             <Route path="/mobile" element={<MobileLayout />}>
-                {/* Default to Home */}
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<MobileHome />} />
-                <Route path="setup" element={<MobileSetup />} />
-                <Route path="scanner" element={<MobileQRLogin />} />
+                {/* ... etc */}
             </Route>
 
-            {/* --- 5. Fallback (404) --- */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={
+                !isAuthenticated ? (
+                    <Navigate to="/login" replace />
+                ) : (
+                    userRole === 'ADMIN' ? <Navigate to="/admin/dashboard" replace /> :
+                    userRole === 'MANAGER' ? <Navigate to="/manager/dashboard" replace /> :
+                    userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="/procurement/dashboard" replace /> :
+                    <Navigate to="/warehouse/dashboard" replace /> // Default for STAFF
+                )
+            } />
         </Routes>
     );
 };

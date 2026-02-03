@@ -42,17 +42,14 @@ const DashboardLayout = () => {
                 }
 
                 // 2. Handle Role-Sensitivity
-                // Matches the "role" claim from your Java JwtService
                 setUserRole(decoded.role);
 
             } catch (error) {
                 console.error("Error decoding token:", error);
-                handleLogout(); // If token is garbled, boot them to login
+                handleLogout();
             }
         }
     }, []);
-
-    //const userRole = localStorage.getItem('role');
 
     const navItems = [
         //
@@ -88,7 +85,7 @@ const DashboardLayout = () => {
         }] : []),
 
         // 6. SETTINGS (Visible to everyone)
-        { label: 'User Settings', path: '/dashboard/settings', icon: <Cog size={20} /> }
+        { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> }
     ];
 
     return (
