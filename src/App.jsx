@@ -13,7 +13,6 @@ import Settings from './pages/Settings.jsx';
 
 // Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
-// Role Dashboard Placeholders
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
 const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 
@@ -33,6 +32,8 @@ import {ReturnsInspection} from "./pages/core/ReturnsInspection.jsx";
 import Inventory from "./pages/core/Inventory.jsx";
 import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
 import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
+import WarehouseList from "./pages/manager/WarehouseList.jsx";
+import WarehouseInventory from "./pages/WarehouseInventory.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
@@ -58,6 +59,8 @@ const App = () => {
 
                 {/* MANAGER */}
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
+                <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
 
                 {/* PROCUREMENT */}
                 <Route path="dashboard" element={<ProcurementDashboard />} />
