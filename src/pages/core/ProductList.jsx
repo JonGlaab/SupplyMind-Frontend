@@ -3,10 +3,14 @@ import api from '../../services/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import ProductDetailsModal from './ProductDetailsModal';
+import AddProductModal from './AddProductModal';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -15,7 +19,6 @@ const ProductList = () => {
     const fetchProducts = async () => {
         try {
             const res = await api.get('/api/core/products');
-            // Backend returns a Page object, so we access .content
             setProducts(res.data.content || []);
         } catch (err) {
             console.error("Failed to load products", err);
@@ -27,11 +30,15 @@ const ProductList = () => {
             <Card className="shadow-lg border-none">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-2xl font-bold">Product Catalog</CardTitle>
-                    {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER') && (
-                        <Button onClick={() => {/* Open Create Modal */}}>
+
+                    // TODO: Remove ADMIN for production
+                    {/* --- DEVELOPMENT: Allow Admin to see Add button --- */}
+                    {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') && (
+                        <Button onClick={() => setIsAddModalOpen(true)}>
                             Add New Product
                         </Button>
                     )}
+
                 </CardHeader>
                 <CardContent>
                     <table className="w-full text-left border-collapse">
@@ -47,6 +54,7 @@ const ProductList = () => {
                         </thead>
                         <tbody>
                         {products.map(product => (
+
                             <tr key={product.productId} className="border-b hover:bg-slate-50 transition-colors">
                                 <td className="p-4 font-mono text-sm">{product.sku}</td>
                                 <td className="p-4 font-semibold">{product.name}</td>
@@ -56,10 +64,13 @@ const ProductList = () => {
                                     {product.description || 'No description available'}
                                 </td>
                                 <td className="p-4 flex justify-center gap-2">
-                                    <Button variant="outline" size="sm">View</Button>
-                                    {userRole === 'PROCUREMENT_OFFICER' && (
-                                        <Button variant="destructive" size="sm">Delete</Button>
-                                    )}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setSelectedProduct(product)}
+                                    >
+                                        View
+                                    </Button>
                                 </td>
                             </tr>
                         ))}
@@ -67,6 +78,21 @@ const ProductList = () => {
                     </table>
                 </CardContent>
             </Card>
+
+            {/* Render the modal if a product is selected */}
+            <ProductDetailsModal
+                product={selectedProduct}
+                isOpen={!!selectedProduct}
+                onClose={() => setSelectedProduct(null)}
+                onUpdateSuccess={fetchProducts}
+                userRole={userRole}
+            />
+
+            <AddProductModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={fetchProducts} // Refresh the table after adding
+            />
         </div>
     );
 };
