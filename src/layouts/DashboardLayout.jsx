@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Package,
     ShoppingCart,
     Users,
+    Cog,
     Truck,
     LogOut,
     Menu,
@@ -12,8 +13,11 @@ import {
     Bell,
     ShieldCheck
 } from 'lucide-react';
+import {jwtDecode} from "jwt-decode";
 
 const DashboardLayout = () => {
+    const [initials, setInitials] = useState('??');
+    const [userRole, setUserRole] = useState(null);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
@@ -23,19 +27,68 @@ const DashboardLayout = () => {
         navigate('/login');
     };
 
-    const userRole = localStorage.getItem('role');
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+
+                const fName = decoded.firstName || '';
+                const lName = decoded.lastName || '';
+                if (fName && lName) {
+                    setInitials(`${fName[0]}${lName[0]}`.toUpperCase());
+                } else if (decoded.sub) {
+                    setInitials(decoded.sub.substring(0, 2).toUpperCase());
+                }
+
+                // 2. Handle Role-Sensitivity
+                // Matches the "role" claim from your Java JwtService
+                setUserRole(decoded.role);
+
+            } catch (error) {
+                console.error("Error decoding token:", error);
+                handleLogout(); // If token is garbled, boot them to login
+            }
+        }
+    }, []);
+
+    //const userRole = localStorage.getItem('role');
 
     const navItems = [
-        { label: 'Overview', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-            ...(userRole === 'ADMIN' ? [{
-                label: 'Admin Panel',
-                path: '/admin/dashboard',
-                icon: <ShieldCheck size={20} />
-            }] : []),
-        { label: 'Inventory', path: '/dashboard/inventory', icon: <Package size={20} /> },
-        { label: 'Products', path: '/dashboard/products', icon: <ShoppingCart size={20} /> },
-        { label: 'Orders', path: '/dashboard/orders', icon: <Users size={20} /> },
-        { label: 'Suppliers', path: '/dashboard/suppliers', icon: <Truck size={20} /> },
+        //
+
+        ...(userRole === 'ADMIN' ? [{
+            label: 'Admin Panel',
+            path: '/admin/dashboard',
+            icon: <ShieldCheck size={20} />
+        }] : []),
+
+        ...(userRole === 'STAFF' ? [{
+            label: 'Inventory',
+            path: '/dashboard/inventory',
+            icon: <Package size={20} />
+        }] : []),
+
+        ...(userRole === 'MANAGER' ? [
+            {
+                label: 'Products',
+                path: '/dashboard/products',
+                icon: <ShoppingCart size={20}/>
+            },
+            {
+                label: 'Overview',
+                path: '/dashboard',
+                icon: <LayoutDashboard size={20} />
+            }
+        ] : []),
+        ...(userRole === 'PROCUREMENT_OFFICER' ? [{
+            label: 'Suppliers',
+            path: '/dashboard/suppliers',
+            icon: <Truck size={20} />
+        }] : []),
+
+        // 6. SETTINGS (Visible to everyone)
+        { label: 'User Settings', path: '/dashboard/settings', icon: <Cog size={20} /> }
     ];
 
     return (
@@ -102,8 +155,9 @@ const DashboardLayout = () => {
                             <Bell size={20} />
                             <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
                         </button>
-                        <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm">
-                            AD
+
+                        <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm border border-blue-200 shadow-sm">
+                            {initials}
                         </div>
                     </div>
                 </header>

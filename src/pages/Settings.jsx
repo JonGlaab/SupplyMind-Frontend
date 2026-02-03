@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import LinkDeviceQR from '../components/LinkDeviceQR';
-import api from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { jwtDecode } from 'jwt-decode';
+import LinkDeviceQR from '../components/LinkDeviceQR.jsx';
+import api from '../services/api.js';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card.jsx';
 import { User, Mail, Shield, BadgeCheck, Loader2 } from 'lucide-react';
 
 const Settings = () => {
@@ -9,26 +10,24 @@ const Settings = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const token = localStorage.getItem('token');
+
+        if (token) {
             try {
-                // 1. Try to fetch real data from backend
-                const res = await api.get('/auth/me');
-                setUser(res.data);
-            } catch (error) {
-                console.warn("Could not fetch profile, using fallback data.");
-
+                const decoded = jwtDecode(token);
+                // Map the JWT claims to our user state
+                // Matches your Java JwtService: firstName, lastName, role, sub (email)
                 setUser({
-                    firstName: "Current",
-                    lastName: "User",
-                    email: "user@supplymind.com",
-                    role: localStorage.getItem('role') || "STAFF"
+                    firstName: decoded.firstName || "Not Set",
+                    lastName: decoded.lastName || "",
+                    email: decoded.sub || "No email found",
+                    role: decoded.role || "STAFF"
                 });
-            } finally {
-                setLoading(false);
+            } catch (error) {
+                console.error("Failed to decode token for settings:", error);
             }
-        };
-
-        fetchProfile();
+        }
+        setLoading(false);
     }, []);
 
     if (loading) {
@@ -41,15 +40,12 @@ const Settings = () => {
 
     return (
         <div className="p-6 max-w-6xl mx-auto space-y-8 animate-in fade-in">
-            {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account Settings</h1>
                 <p className="text-muted-foreground mt-1">Manage your profile and security preferences.</p>
             </div>
 
             <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
-
-                {/* COLUMN 1: User Profile Details (Takes up 2 columns on large screens) */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="shadow-sm border-slate-200">
                         <CardHeader className="pb-4 border-b bg-slate-50/50">
@@ -59,8 +55,6 @@ const Settings = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
-
-                            {/* Name Row */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-slate-500">First Name</label>
@@ -76,7 +70,6 @@ const Settings = () => {
                                 </div>
                             </div>
 
-                            {/* Email Row */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
                                     <Mail size={14} /> Email Address
@@ -86,26 +79,21 @@ const Settings = () => {
                                 </div>
                             </div>
 
-                            {/* Role Row */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
                                     <Shield size={14} /> System Role
                                 </label>
                                 <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-200 uppercase">
                                         <BadgeCheck size={14} />
                                         {user?.role}
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-400 mt-1">
-                                    Roles define your permissions within the SupplyMind platform. Contact an administrator to change this.
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* COLUMN 2: Link Device QR (Sidebar) */}
                 <div className="lg:col-span-1">
                     <LinkDeviceQR />
                 </div>

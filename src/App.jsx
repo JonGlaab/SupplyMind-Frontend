@@ -42,17 +42,13 @@ const App = () => {
 
             <Route path="/warehouse" element={<DashboardLayout />}>
                 <Route path="dashboard" element={<WarehousePortal />} />
-                <Route path="InventoryView" element={<InventoryView />} />
-
-                <Route path="settings" element={<Settings />} />
+                <Route path="inventoryview" element={<InventoryView />} />
             </Route>
 
             {/* Dedicated Settings Route (Accessible via /settings) */}
-            <Route path="/settings" element={
-                <DashboardLayout>
-                    <Settings />
-                </DashboardLayout>
-            } />
+            <Route path="/settings" element={<DashboardLayout />}>
+                <Route index element={<Settings />} />
+            </Route>
 
             {/* --- 3. Role-Based Routes (Admin, Manager, Procurement) --- */}
 
