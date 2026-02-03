@@ -13,7 +13,6 @@ import Settings from './pages/Settings.jsx';
 
 // Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
-// Role Dashboard Placeholders
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
 const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 
@@ -24,11 +23,17 @@ import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 
 // Warehouse pages here
 import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
-import {InventoryView} from "./pages/core/InventoryView.jsx";
+import InventoryView from "./pages/core/InventoryView.jsx";
 import ProductList from "./pages/core/ProductList.jsx";
-import {PurchaseOrders} from "./pages/core/PurchaseOrders.jsx";
+
+// other?
+import {PurchaseOrders} from "./pages/procurementofficer/PurchaseOrders.jsx";
 import {ReturnsInspection} from "./pages/core/ReturnsInspection.jsx";
 import Inventory from "./pages/core/Inventory.jsx";
+import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
+import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
+import WarehouseList from "./pages/manager/WarehouseList.jsx";
+import WarehouseInventory from "./pages/WarehouseInventory.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
@@ -54,9 +59,13 @@ const App = () => {
 
                 {/* MANAGER */}
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
+                <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
 
                 {/* PROCUREMENT */}
-                <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
+                <Route path="dashboard" element={<ProcurementDashboard />} />
+                <Route path="suppliers" element={<SupplierList />} />
+                <Route path="suppliers/:supplierId/products" element={<SupplierProductView />} />
 
                 {/* WAREHOUSE/STAFF */}
                 <Route path="warehouse/dashboard" element={<WarehousePortal />} />
@@ -68,6 +77,7 @@ const App = () => {
                 <Route path="returnsinspection" element={<ReturnsInspection />}/>
                 <Route path="inventory" element={<Inventory />}/>
                 <Route path="inventoryview" element={<InventoryView />}/>
+                <Route path="supplierlist" element={<SupplierList />}/>
             </Route>
 
             {/* Mobile Routes */}
