@@ -25,6 +25,10 @@ import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 // Warehouse pages here
 import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
 import {InventoryView} from "./pages/core/InventoryView.jsx";
+import ProductList from "./pages/core/ProductList.jsx";
+import {PurchaseOrders} from "./pages/core/PurchaseOrders.jsx";
+import {ReturnsInspection} from "./pages/core/ReturnsInspection.jsx";
+import Inventory from "./pages/core/Inventory.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
@@ -57,6 +61,13 @@ const App = () => {
                 {/* WAREHOUSE/STAFF */}
                 <Route path="warehouse/dashboard" element={<WarehousePortal />} />
                 <Route path="warehouse/inventory" element={<InventoryView />} />
+
+                {/* test routes */}
+                <Route path="productlist" element={<ProductList />}/>
+                <Route path="purchaseorders" element={<PurchaseOrders />}/>
+                <Route path="returnsinspection" element={<ReturnsInspection />}/>
+                <Route path="inventory" element={<Inventory />}/>
+                <Route path="inventoryview" element={<InventoryView />}/>
             </Route>
 
             {/* Mobile Routes */}
@@ -76,6 +87,7 @@ const App = () => {
                     <Navigate to="/warehouse/dashboard" replace /> // Default for STAFF
                 )
             } />
+
         </Routes>
     );
 };

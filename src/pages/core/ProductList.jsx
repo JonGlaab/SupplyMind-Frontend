@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/badge';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
-    const [userRole, setUserRole] = useState(localStorage.getItem('role')); // Get role for permissions
+    const [userRole, setUserRole] = useState(localStorage.getItem('role'));
 
     useEffect(() => {
         fetchProducts();

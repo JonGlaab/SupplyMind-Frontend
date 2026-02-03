@@ -85,7 +85,12 @@ const DashboardLayout = () => {
         }] : []),
 
         // 6. SETTINGS (Visible to everyone)
-        { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> }
+        { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> },
+
+        { label: 'Product list', path: '/productlist', icon: <Cog size={20} /> },
+        { label: 'inventory', path: '/inventory', icon: <Cog size={20} /> },
+        { label: 'purchase orders', path: '/purchaseorders', icon: <Cog size={20} /> },
+        { label: 'returns inspection', path: '/returnsinspection', icon: <Cog size={20} /> },
     ];
 
     return (
