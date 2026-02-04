@@ -20,7 +20,7 @@ export function ManagerDashboard() {
                 // Map the backend ForecastResponse to your chart data
                 const mappedData = [
                     { date: 'Last 90d Avg', forecastValue: data.averageDailySales, actualValue: data.averageDailySales },
-                    { date: 'Next 30d (AI)', forecastValue: data.predictedDemandNext30Days, actualValue: null }
+                    { date: 'Next 30d Forecast', forecastValue: data.predictedDemandNext30Days, actualValue: null }
                 ];
 
                 setForecastData(mappedData);
@@ -105,7 +105,7 @@ export function ManagerDashboard() {
             {/* Forecast Chart using live forecastData */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <CardHeader><CardTitle>AI Demand Forecast</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Demand Forecast</CardTitle></CardHeader>
                     <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={forecastData}>
