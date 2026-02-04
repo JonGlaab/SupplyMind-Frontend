@@ -14,31 +14,37 @@ import Settings from './pages/Settings.jsx';
 // Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
-const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 
-// Mobile Component Placeholders (Ensure these files exist or adjust imports)
+// Core Pages (Mapped to Sidebar Views)
+import ProductList from "./pages/core/ProductList.jsx";
+import Inventory from "./pages/core/Inventory.jsx";
+import { ReturnsInspection } from "./pages/core/ReturnsInspection.jsx";
+
+// Procurement & Supplier Pages
+import { PurchaseOrders } from "./pages/procurementofficer/PurchaseOrders.jsx";
+import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
+import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
+
+// Manager Specialized Pages
+import WarehouseList from "./pages/manager/WarehouseList.jsx";
+import WarehouseInventory from "./pages/WarehouseInventory.jsx";
+
+// Staff/Warehouse Pages
+import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
+import InventoryView from "./pages/core/InventoryView.jsx";
+
+// Mobile Pages
 import MobileSetup from './mobile/MobileSetup.jsx';
 import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 
-// Warehouse pages here
-import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
-import InventoryView from "./pages/core/InventoryView.jsx";
-import ProductList from "./pages/core/ProductList.jsx";
-
-// other?
-import {PurchaseOrders} from "./pages/procurementofficer/PurchaseOrders.jsx";
-import {ReturnsInspection} from "./pages/core/ReturnsInspection.jsx";
-import Inventory from "./pages/core/Inventory.jsx";
-import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
-import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
-import WarehouseList from "./pages/manager/WarehouseList.jsx";
-import WarehouseInventory from "./pages/WarehouseInventory.jsx";
-
 const App = () => {
     const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole'); // Or decode from token
+    const userRole = localStorage.getItem('UserRole');
     const isAuthenticated = !!token;
+
+    // Placeholder for Procurement Dashboard once ready
+    const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
 
     return (
         <Routes>
@@ -46,58 +52,57 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/change-password" element={<ChangePassword />} />
 
-            {/* Shared Dashboard Routes */}
-            <Route path="/" element={<DashboardLayout />}>
-                {/* Redirect base / to a default based on role logic later, or just login */}
-                <Route index element={<Navigate to="/login" replace />} />
+            {/* Main Application Frame (Protected) */}
+            <Route
+                path="/"
+                element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />}
+            >
+                {/* Landing Page Logic */}
+                <Route index element={
+                    userRole === 'ADMIN' ? <Navigate to="dashboard" replace /> :
+                        userRole === 'MANAGER' ? <Navigate to="dashboard" replace /> :
+                            userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="procurement" replace /> :
+                                <Navigate to="inventory" replace />
+                } />
 
-                {/* SHARED: Everyone goes to the same settings page */}
-                <Route path="settings" element={<Settings />} />
+                {/* Unified Dashboard Path */}
+                <Route path="dashboard" element={
+                    userRole === 'ADMIN' ? <AdminDashboard /> : <ManagerDashboard />
+                } />
 
-                {/* ADMIN */}
-                <Route path="admin/dashboard" element={<AdminDashboard />} />
+                {/* Inventory Operations */}
+                <Route path="productlist" element={<ProductList />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="inventoryview" element={<InventoryView />} />
 
-                {/* MANAGER */}
-                <Route path="manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="manager/warehouselist" element={<WarehouseList />} />
-                <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
-
-                {/* PROCUREMENT */}
-                <Route path="dashboard" element={<ProcurementDashboard />} />
+                {/* 4. Procurement & Suppliers */}
+                <Route path="procurement" element={<PurchaseOrders />} />
                 <Route path="suppliers" element={<SupplierList />} />
                 <Route path="suppliers/:supplierId/products" element={<SupplierProductView />} />
 
-                {/* WAREHOUSE/STAFF */}
-                <Route path="warehouse/dashboard" element={<WarehousePortal />} />
-                <Route path="warehouse/inventory" element={<InventoryView />} />
+                {/* 5. Logistics & Admin Specific */}
+                <Route path="returns" element={<ReturnsInspection />} />
+                <Route path="admin-panel" element={<AdminDashboard />} />
 
-                {/* test routes */}
-                <Route path="productlist" element={<ProductList />}/>
-                <Route path="purchaseorders" element={<PurchaseOrders />}/>
-                <Route path="returnsinspection" element={<ReturnsInspection />}/>
-                <Route path="inventory" element={<Inventory />}/>
-                <Route path="inventoryview" element={<InventoryView />}/>
-                <Route path="supplierlist" element={<SupplierList />}/>
+                {/* 6. Specialized Manager & Settings */}
+                <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
+                <Route path="settings" element={<Settings />} />
+
+                {/* Staff Default */}
+                <Route path="warehouse/dashboard" element={<WarehousePortal />} />
             </Route>
 
-            {/* Mobile Routes */}
+            {/* Mobile Application */}
             <Route path="/mobile" element={<MobileLayout />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<MobileHome />} />
-                {/* ... etc */}
+                <Route path="setup" element={<MobileSetup />} />
+                <Route path="qr-login" element={<MobileQRLogin />} />
             </Route>
 
-            <Route path="*" element={
-                !isAuthenticated ? (
-                    <Navigate to="/login" replace />
-                ) : (
-                    userRole === 'ADMIN' ? <Navigate to="/admin/dashboard" replace /> :
-                    userRole === 'MANAGER' ? <Navigate to="/manager/dashboard" replace /> :
-                    userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="/procurement/dashboard" replace /> :
-                    <Navigate to="/warehouse/dashboard" replace /> // Default for STAFF
-                )
-            } />
-
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
     );
 };

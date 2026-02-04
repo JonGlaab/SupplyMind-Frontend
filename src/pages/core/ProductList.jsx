@@ -31,7 +31,7 @@ const ProductList = () => {
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-2xl font-bold">Product Catalog</CardTitle>
 
-                    // TODO: Remove ADMIN for production
+                    {/* TODO: Remove ADMIN for production */}
                     {/* --- DEVELOPMENT: Allow Admin to see Add button --- */}
                     {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') && (
                         <Button onClick={() => setIsAddModalOpen(true)}>

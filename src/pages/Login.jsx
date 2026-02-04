@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import DesktopLoginQR from '../components/DesktopLoginQR.jsx'; // Renamed component
+import DesktopLoginQR from '../components/DesktopLoginQR.jsx';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -13,7 +13,6 @@ const Login = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // 📱 Simple Mobile Detection Helper
     const isMobileDevice = () => {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     };
@@ -27,42 +26,37 @@ const Login = () => {
             const res = await api.post('/api/auth/login', formData);
             const { token, role, needsPasswordChange } = res.data;
 
-            // 1. Save Session
+            // Save using key 'role' to match App.jsx logic
             localStorage.setItem('token', token);
-            localStorage.setItem('role', role);
+            localStorage.setItem('userRole', role);
 
-            // 2. Security Check (Force Password Change)
+            // Security Check (Force Password Change)
             if (needsPasswordChange) {
                 navigate('/change-password');
                 return;
             }
 
-            // 3. 🔀 SMART ROUTING (Role + Device)
+            // SMART ROUTING (Role + Device)
             const isMobile = isMobileDevice();
 
-            // A. Specialized Mobile Roles (Go to App Layout if on phone)
+            // Specialized Mobile Roles
             if (isMobile && (role === 'MANAGER' || role === 'PROCUREMENT_OFFICER')) {
                 navigate('/mobile/home');
                 return;
             }
 
-            // B. Standard Role Routing (Desktop / Non-Mobile users)
+            // Standard Role Routing (Desktop / Non-Mobile users)
+            // We now use the unified paths defined in your updated App.jsx
             switch (role) {
                 case 'ADMIN':
-                    navigate('/admin/dashboard');
-                    break;
                 case 'MANAGER':
-                    navigate('/manager/dashboard');
+                    navigate('/dashboard'); // Both Admin and Manager now share this unified path
                     break;
                 case 'PROCUREMENT_OFFICER':
-                    navigate('/procurement/dashboard');
-                    break;
-                case 'STAFF':
-                case 'CUSTOMER':
-                    navigate('/staff/dashboard');
+                    navigate('/procurement'); // Matched to Sidebar view="procurement"
                     break;
                 default:
-                    navigate('/dashboard');
+                    navigate('/inventory'); // Default landing for Staff/Warehouse
             }
 
         } catch (err) {
@@ -76,8 +70,7 @@ const Login = () => {
     return (
         <div className="min-h-screen w-full bg-muted/40 flex items-center justify-center p-4">
             <div className="grid w-full max-w-5xl grid-cols-1 md:grid-cols-2 gap-8">
-
-                {/* Left: Email Login */}
+                {/* Email Login Card */}
                 <Card className="w-full h-full border-none shadow-xl bg-background/95 backdrop-blur">
                     <CardHeader>
                         <CardTitle className="text-2xl font-bold">Internal Portal</CardTitle>
@@ -127,7 +120,7 @@ const Login = () => {
                     </CardFooter>
                 </Card>
 
-                {/* Right: Mobile Unlock */}
+                {/* Mobile Unlock Card */}
                 <Card className="w-full h-full bg-slate-950 text-white border-slate-800 shadow-2xl flex flex-col justify-center items-center text-center p-8 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
                     <div className="relative z-10 flex flex-col items-center max-w-sm">

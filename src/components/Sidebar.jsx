@@ -1,153 +1,130 @@
 import { useState } from 'react'
-import { LayoutDashboard, Package, ShoppingCart, RotateCcw, Settings, ChevronDown } from 'lucide-react'
-import { cn } from '../lib/utils' // Ensure this path matches your project structure
+import {
+    LayoutDashboard,
+    Package,
+    ShoppingCart,
+    RotateCcw,
+    Settings,
+    ChevronDown,
+    ShieldCheck,
+    LogOut
+} from 'lucide-react'
+import { cn } from '../lib/utils'
 
-export function Sidebar({ currentView, onViewChange }) {
+export function Sidebar({ currentView, onViewChange, onLogout }) {
+    const [userRole] = useState(localStorage.getItem('userRole'));
+    const [userEmail] = useState(localStorage.getItem('userEmail') || 'manager@supplymind.com');
+
     const [expandedMenus, setExpandedMenus] = useState({
         inventory: false,
         procurement: false,
     })
 
     const toggleMenu = (menu) => {
-        setExpandedMenus(prev => ({
-            ...prev,
-            [menu]: !prev[menu]
-        }))
+        setExpandedMenus(prev => ({ ...prev, [menu]: !prev[menu] }))
     }
 
-    const NavItem = ({ icon: Icon, label, view, submenu }) => (
+    const NavItem = ({ icon: Icon, label, view, active }) => (
         <button
-            onClick={() => !submenu && onViewChange(view)}
+            onClick={() => onViewChange(view)}
             className={cn(
-                'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                currentView === view
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-muted'
+                'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200',
+                (active || currentView === view)
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
             )}
         >
             <Icon className="w-5 h-5" />
             <span>{label}</span>
-            {submenu && (
-                <ChevronDown className={cn(
-                    'w-4 h-4 ml-auto transition-transform',
-                    expandedMenus[view] && 'rotate-180'
-                )} />
-            )}
         </button>
     )
 
     return (
-        <aside className="w-64 bg-card border-r border-border flex flex-col h-screen">
-            {/* Logo */}
-            <div className="p-6 border-b border-border">
+        <aside className="w-64 bg-slate-950 text-slate-100 flex flex-col h-screen border-r border-slate-800">
+            {/* Logo Section - Clean branding */}
+            <div className="p-8 border-b border-slate-800/50">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                        S
-                    </div>
-                    <span className="text-lg font-bold text-foreground">SupplyMind</span>
+                    <span className="text-lg font-bold tracking-tight uppercase">
+                        SUPPLY<span className="text-blue-500">MIND</span>
+                    </span>
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 overflow-auto p-4 space-y-2">
-                <NavItem
-                    icon={LayoutDashboard}
-                    label="Command Center"
-                    view="dashboard"
-                />
+            {/* Navigation Section */}
+            <nav className="flex-1 overflow-auto p-4 space-y-1">
 
-                <div>
+                {/* Intelligence Hub */}
+                {(userRole === 'ADMIN' || userRole === 'MANAGER') && (
+                    <NavItem
+                        icon={LayoutDashboard}
+                        label={userRole === 'MANAGER' ? "Manager Intelligence" : "Command Center"}
+                        view="dashboard"
+                    />
+                )}
+
+                {/* Admin Panel */}
+                {userRole === 'ADMIN' && (
+                    <NavItem icon={ShieldCheck} label="Admin Panel" view="admin-panel" />
+                )}
+
+                {/* Inventory Grouping */}
+                <div className="space-y-1">
                     <button
                         onClick={() => toggleMenu('inventory')}
                         className={cn(
                             'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                            currentView.startsWith('inventory')
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-foreground hover:bg-muted'
+                            (currentView === 'productlist' || currentView === 'inventory')
+                                ? 'text-blue-400' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
                         )}
                     >
                         <Package className="w-5 h-5" />
                         <span>Inventory</span>
-                        <ChevronDown className={cn(
-                            'w-4 h-4 ml-auto transition-transform',
-                            expandedMenus.inventory && 'rotate-180'
-                        )} />
+                        <ChevronDown className={cn('w-4 h-4 ml-auto transition-transform duration-200', expandedMenus.inventory && 'rotate-180')} />
                     </button>
                     {expandedMenus.inventory && (
-                        <div className="ml-4 mt-1 space-y-1">
+                        <div className="ml-9 space-y-1 border-l border-slate-800">
+                            <button
+                                onClick={() => onViewChange('productlist')}
+                                className={cn('text-left px-4 py-2 text-xs rounded transition-colors block w-full',
+                                    currentView === 'productlist' ? 'text-blue-400 font-bold' : 'text-slate-500 hover:text-slate-200'
+                                )}
+                            >
+                                Product Catalog
+                            </button>
                             <button
                                 onClick={() => onViewChange('inventory')}
-                                className={cn(
-                                    'text-left px-4 py-2 text-xs rounded transition-colors block w-full',
-                                    currentView === 'inventory'
-                                        ? 'bg-secondary text-secondary-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
+                                className={cn('text-left px-4 py-2 text-xs rounded transition-colors block w-full',
+                                    currentView === 'inventory' ? 'text-blue-400 font-bold' : 'text-slate-500 hover:text-slate-200'
                                 )}
                             >
-                                Products
+                                Stock Management
                             </button>
                         </div>
                     )}
                 </div>
 
-                <div>
-                    <button
-                        onClick={() => toggleMenu('procurement')}
-                        className={cn(
-                            'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                            currentView.startsWith('procurement')
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-foreground hover:bg-muted'
-                        )}
-                    >
-                        <ShoppingCart className="w-5 h-5" />
-                        <span>Procurement</span>
-                        <ChevronDown className={cn(
-                            'w-4 h-4 ml-auto transition-transform',
-                            expandedMenus.procurement && 'rotate-180'
-                        )} />
-                    </button>
-                    {expandedMenus.procurement && (
-                        <div className="ml-4 mt-1 space-y-1">
-                            <button
-                                onClick={() => onViewChange('procurement')}
-                                className={cn(
-                                    'text-left px-4 py-2 text-xs rounded transition-colors block w-full',
-                                    currentView === 'procurement'
-                                        ? 'bg-secondary text-secondary-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                )}
-                            >
-                                Purchase Orders
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Procurement */}
+                {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') && (
+                    <NavItem icon={ShoppingCart} label="Purchase Orders" view="procurement" />
+                )}
 
-                <NavItem
-                    icon={RotateCcw}
-                    label="Returns & Inspection"
-                    view="returns"
-                />
+                <NavItem icon={RotateCcw} label="Returns & Inspection" view="returns" />
+
+                {/* Settings as a regular nav item */}
+                <NavItem icon={Settings} label="User Settings" view="settings" />
             </nav>
 
-            {/* Settings & Profile */}
-            <div className="border-t border-border p-4 space-y-2">
+            {/* Bottom Actions Area */}
+            <div className="border-t border-slate-800 p-4 space-y-3">
+
+                {/* The Logout Button */}
                 <button
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                    onClick={onLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-all"
                 >
-                    <Settings className="w-5 h-5" />
-                    <span>Settings</span>
+                    <LogOut className="w-5 h-5" />
+                    <span>Sign Out</span>
                 </button>
-                <div className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        A
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">Admin User</p>
-                        <p className="text-xs text-muted-foreground truncate">admin@supplymind.com</p>
-                    </div>
-                </div>
             </div>
         </aside>
     )
