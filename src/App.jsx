@@ -48,11 +48,13 @@ const App = () => {
 
             {/* Shared Dashboard Routes */}
             <Route path="/" element={<DashboardLayout />}>
-                {/* Redirect base / to a default based on role logic later, or just login */}
-                <Route index element={<Navigate to="/login" replace />} />
-
-                {/* SHARED: Everyone goes to the same settings page */}
-                <Route path="settings" element={<Settings />} />
+                {/* Landing Page Redirect */}
+                <Route index element={
+                    userRole === 'ADMIN' ? <Navigate to="admin/dashboard" replace /> :
+                        userRole === 'MANAGER' ? <Navigate to="manager/dashboard" replace /> :
+                            userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="procurement/dashboard" replace /> :
+                                <Navigate to="warehouse/dashboard" replace />
+                } />
 
                 {/* ADMIN */}
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
@@ -86,16 +88,8 @@ const App = () => {
                 {/* ... etc */}
             </Route>
 
-            <Route path="*" element={
-                !isAuthenticated ? (
-                    <Navigate to="/login" replace />
-                ) : (
-                    userRole === 'ADMIN' ? <Navigate to="/admin/dashboard" replace /> :
-                    userRole === 'MANAGER' ? <Navigate to="/manager/dashboard" replace /> :
-                    userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="/procurement/dashboard" replace /> :
-                    <Navigate to="/warehouse/dashboard" replace />
-                )
-            } />
+            {/* Catch-all for logged-in users */}
+            <Route path="*" element={<Navigate to="/" replace />} />
 
         </Routes>
     );

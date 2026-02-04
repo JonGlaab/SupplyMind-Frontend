@@ -13,37 +13,36 @@ export function ManagerDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const headers = { 'Authorization': `Bearer ${token}` };
+                // Fetching data for Product ID 1 for testing
+                const forecastRes = await api.get('/api/intel/demand/1');
+                const { data } = forecastRes;
 
-                // Attempt to fetch
-                const responses = await Promise.allSettled([
-                    fetch('/api/intel/forecast?warehouseId=1', { headers }),
-                    fetch('/api/intel/anomalies?warehouseId=1', { headers })
-                ]);
+                // Map the backend ForecastResponse to your chart data
+                const mappedData = [
+                    { date: 'Last 90d Avg', forecastValue: data.averageDailySales, actualValue: data.averageDailySales },
+                    { date: 'Next 30d (AI)', forecastValue: data.predictedDemandNext30Days, actualValue: null }
+                ];
 
-                // Process Forecast
-                if (responses[0].status === 'fulfilled' && responses[0].value.ok) {
-                    const data = await responses[0].value.json();
-                    setForecastData(data);
-                } else {
-                    // FALLBACK MOCK DATA
-                    setForecastData([
-                        { date: 'Feb 1', forecastValue: 400, actualValue: 380 },
-                        { date: 'Feb 2', forecastValue: 420, actualValue: 450 },
-                    ]);
-                }
+                setForecastData(mappedData);
 
-                // Process Alerts
-                if (responses[1].status === 'fulfilled' && responses[1].value.ok) {
-                    const data = await responses[1].value.json();
-                    setAlerts(data);
-                } else {
-                    setAlerts([{ id: 1, description: "System: API placeholder detected. Using mock alerts.", timestamp: "Just now" }]);
-                }
+                // Update KPI state with backend data
+                setKpis({
+                    stockouts: 2, // TODO: Hardcoded stockouts for now until RiskController is
+                    // linked
+                    recommendations: data.predictedDemandNext30Days > 100 ? 5 : 0,
+                    trend: data.trend // "RISING", "STABLE", "DECLINING"
+                });
 
             } catch (error) {
-                console.error("Fetch failed, using local fallback:", error);
+                console.error("Fetch failed, using simulation data:", error);
+
+                // Keeping the dashboard alive with mock data if backend isn't ready
+                setForecastData([
+                    { date: 'Simulation A', forecastValue: 400, actualValue: 380 },
+                    { date: 'Simulation B', forecastValue: 450, actualValue: null },
+                ]);
+
+                setKpis({ stockouts: 0, recommendations: 0, trend: "STABLE" });
             } finally {
                 setLoading(false);
             }

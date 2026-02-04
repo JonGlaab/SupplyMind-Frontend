@@ -11,19 +11,23 @@ import {
     Menu,
     X,
     Bell,
-    ShieldCheck
+    ShieldCheck,
+    RotateCcw,
+    Settings
 } from 'lucide-react';
 import {jwtDecode} from "jwt-decode";
+import {cn} from '../lib/utils';
 
 const DashboardLayout = () => {
     const [initials, setInitials] = useState('??');
-    const [userRole, setUserRole] = useState(null);
+    const [userRole] = useState(localStorage.getItem('userRole'));
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         navigate('/login');
     };
 
@@ -41,9 +45,6 @@ const DashboardLayout = () => {
                     setInitials(decoded.sub.substring(0, 2).toUpperCase());
                 }
 
-                // 2. Handle Role-Sensitivity
-                setUserRole(decoded.role);
-
             } catch (error) {
                 console.error("Error decoding token:", error);
                 handleLogout();
@@ -52,96 +53,71 @@ const DashboardLayout = () => {
     }, []);
 
     const navItems = [
-        //
+        // Intelligence Hub
+        // TODO: Remove (userRole === 'ADMIN') after dev testing is complete
+        ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [{
+            label: userRole === 'MANAGER' ? 'Manager Intelligence' : 'Test: Manager Hub',
+            path: '/manager/dashboard',
+            icon: <LayoutDashboard size={20} />
+        }] : []),
 
+        // Admin Panel
         ...(userRole === 'ADMIN' ? [{
-            label: 'Admin Panel',
+            label: 'System Administration',
             path: '/admin/dashboard',
             icon: <ShieldCheck size={20} />
-        },
-            { label: 'Product list', path: '/productlist', icon: <Cog size={20} /> },
-            { label: 'inventory', path: '/inventory', icon: <Cog size={20} /> },
-            { label: 'purchase orders', path: '/procurement/purchaseorders', icon: <Cog size={20} /> },
-            { label: 'returns inspection', path: '/returnsinspection', icon: <Cog size={20} /> },] : []),
-            { label: 'Warehouse List', path: '/manager/warehouselist', icon: <Cog size={20} /> },
-            { label: 'Supplier List', path: '/procurement/suppliers', icon: <Cog size={20} /> },
-            { label: 'warehouse portal', path: '/warehouseportal', icon: <Cog size={20} /> },
-
-        ...(userRole === 'STAFF' ? [{
-            label: 'Inventory',
-            path: '/dashboard/inventory',
-            icon: <Package size={20} />
         }] : []),
 
-        ...(userRole === 'MANAGER' ? [
-            {
-                label: 'Products',
-                path: '/dashboard/products',
-                icon: <ShoppingCart size={20}/>
-            },
-            {
-                label: 'Overview',
-                path: '/dashboard',
-                icon: <LayoutDashboard size={20} />
-            }
-        ] : []),
-        ...(userRole === 'PROCUREMENT_OFFICER' ? [{
-            label: 'Suppliers',
-            path: '/dashboard/suppliers',
-            icon: <Truck size={20} />
+        // Operational Views (ADMIN has access to everything for testing)
+        // TODO: Restrict these paths to specific roles before production
+        { label: 'Product Catalog', path: '/productlist', icon: <Package size={20} /> },
+        { label: 'Stock Management', path: '/inventory', icon: <Truck size={20} /> },
+        { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
+        { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> },
+
+        // Warehouse (ADMIN Test)
+        ...(userRole === 'ADMIN' ? [{
+            label: 'Warehouse Portal', path: '/warehouse/dashboard', icon: <Package size={20} />
         }] : []),
 
-        // 6. SETTINGS (Visible to everyone)
         { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> }
     ];
 
     return (
         <div className="flex h-screen bg-slate-50">
-            <aside
-                className={`bg-slate-900 text-white transition-all duration-300 ease-in-out flex flex-col
-                    ${isSidebarOpen ? 'w-64' : 'w-20'} 
-                    hidden md:flex`}
-            >
-                <div className="p-4 flex items-center justify-between border-b border-slate-800 h-16">
-                    {isSidebarOpen ? (
-                        <h1 className="font-bold text-xl tracking-wider">SUPPLY<span className="text-blue-400">MIND</span></h1>
-                    ) : (
-                        <span className="font-bold text-xl text-blue-400">SM</span>
-                    )}
-                    <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white">
+            <aside className={cn(
+                "bg-slate-950 text-slate-100 transition-all duration-300 flex flex-col border-r border-slate-800",
+                isSidebarOpen ? 'w-64' : 'w-20'
+            )}>
+                <div className="p-6 border-b border-slate-800/50 flex items-center justify-between">
+                    {isSidebarOpen && <span className="font-bold tracking-tight uppercase">SUPPLY<span className="text-blue-500">MIND</span></span>}
+                    <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="text-slate-500 hover:text-white">
                         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>
                 </div>
 
-                <nav className="flex-1 py-6 px-3 space-y-2">
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {navItems.map((item) => (
                         <button
                             key={item.path}
                             onClick={() => navigate(item.path)}
-                            className={`w-full flex items-center p-3 rounded-lg transition-colors
-                                ${location.pathname === item.path
-                                ? 'bg-blue-600 text-white shadow-lg'
-                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                            }`}
-                        >
-                            <span className="min-w-[24px]">{item.icon}</span>
-                            {isSidebarOpen && (
-                                <span className="ml-3 font-medium text-sm animate-fade-in">
-                                    {item.label}
-                                </span>
+                            className={cn(
+                                "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all",
+                                location.pathname === item.path
+                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                             )}
+                        >
+                            {item.icon}
+                            {isSidebarOpen && <span>{item.label}</span>}
                         </button>
                     ))}
                 </nav>
 
                 <div className="p-4 border-t border-slate-800">
-                    <button
-                        onClick={handleLogout}
-                        className={`w-full flex items-center p-2 rounded-lg text-red-400 hover:bg-slate-800 transition-colors
-                            ${!isSidebarOpen && 'justify-center'}`}
-                    >
+                    <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
                         <LogOut size={20} />
-                        {isSidebarOpen && <span className="ml-3 text-sm font-medium">Sign Out</span>}
+                        {isSidebarOpen && <span>Sign Out</span>}
                     </button>
                 </div>
             </aside>
@@ -165,7 +141,7 @@ const DashboardLayout = () => {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
                     <Outlet />
                 </main>
             </div>

@@ -8,7 +8,7 @@ import AddProductModal from './AddProductModal';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
-    const [userRole, setUserRole] = useState(localStorage.getItem('role'));
+    const [userRole, setUserRole] = useState(localStorage.getItem('userRole'));
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
