@@ -33,11 +33,11 @@ import Inventory from "./pages/core/Inventory.jsx";
 import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
 import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
 import WarehouseList from "./pages/manager/WarehouseList.jsx";
-import WarehouseInventory from "./pages/WarehouseInventory.jsx";
+import WarehouseInventory from "./pages/core/WarehouseInventory.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole'); // Or decode from token
+    const userRole = localStorage.getItem('userRole');
     const isAuthenticated = !!token;
 
     return (
@@ -63,9 +63,9 @@ const App = () => {
                 <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
 
                 {/* PROCUREMENT */}
-                <Route path="dashboard" element={<ProcurementDashboard />} />
-                <Route path="suppliers" element={<SupplierList />} />
-                <Route path="suppliers/:supplierId/products" element={<SupplierProductView />} />
+                <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
+                <Route path="procurement/suppliers" element={<SupplierList />} />
+                <Route path="procurement/suppliers/:supplierId/products" element={<SupplierProductView />} />
 
                 {/* WAREHOUSE/STAFF */}
                 <Route path="warehouse/dashboard" element={<WarehousePortal />} />
@@ -73,11 +73,10 @@ const App = () => {
 
                 {/* test routes */}
                 <Route path="productlist" element={<ProductList />}/>
-                <Route path="purchaseorders" element={<PurchaseOrders />}/>
+                <Route path="procurement/purchaseorders" element={<PurchaseOrders />}/>
                 <Route path="returnsinspection" element={<ReturnsInspection />}/>
                 <Route path="inventory" element={<Inventory />}/>
                 <Route path="inventoryview" element={<InventoryView />}/>
-                <Route path="supplierlist" element={<SupplierList />}/>
             </Route>
 
             {/* Mobile Routes */}
@@ -94,7 +93,7 @@ const App = () => {
                     userRole === 'ADMIN' ? <Navigate to="/admin/dashboard" replace /> :
                     userRole === 'MANAGER' ? <Navigate to="/manager/dashboard" replace /> :
                     userRole === 'PROCUREMENT_OFFICER' ? <Navigate to="/procurement/dashboard" replace /> :
-                    <Navigate to="/warehouse/dashboard" replace /> // Default for STAFF
+                    <Navigate to="/warehouse/dashboard" replace />
                 )
             } />
 

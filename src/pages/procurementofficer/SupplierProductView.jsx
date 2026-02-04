@@ -5,19 +5,28 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
-import { ArrowLeft, Clock, DollarSign, Package, Trash2, Save, Truck, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, DollarSign, Package, Trash2, Plus, X, Truck, Loader2, Save } from 'lucide-react';
 
 const SupplierProductView = () => {
     const { supplierId } = useParams();
     const navigate = useNavigate();
+
     const [products, setProducts] = useState([]);
+    const [masterProducts, setMasterProducts] = useState([]); // All available products in system
     const [loading, setLoading] = useState(true);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [supplierName, setSupplierName] = useState("");
+
+    const [newLink, setNewLink] = useState({
+        productId: '',
+        costPrice: '',
+        leadTimeDays: ''
+    });
 
     useEffect(() => {
         fetchSupplierProducts();
+        fetchMasterProducts();
     }, [supplierId]);
-
-    const [supplierName, setSupplierName] = useState("");
 
     const fetchSupplierProducts = async () => {
         try {
@@ -25,36 +34,57 @@ const SupplierProductView = () => {
                 params: { supplierId }
             });
             setProducts(res.data);
-
-            // Grab the name from the first product in the list
             if (res.data.length > 0) {
-                // Adjust 'item.supplierName' based on your DTO field name
                 setSupplierName(res.data[0].supplierName || res.data[0].supplier?.name);
             }
-
             setLoading(false);
         } catch (err) {
             setLoading(false);
         }
     };
 
+    const fetchMasterProducts = async () => {
+        try {
+            const res = await api.get('/api/core/products'); // Adjust path to your ProductController
+            // If your product endpoint is paginated, use res.data.content
+            setMasterProducts(Array.isArray(res.data) ? res.data : res.data.content || []);
+        } catch (err) {
+            console.error("Could not load master product list", err);
+        }
+    };
+
+    const handleCreateLink = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post(`/api/core/supplier-products`, {
+                supplierId: parseInt(supplierId),
+                productId: parseInt(newLink.productId),
+                costPrice: parseFloat(newLink.costPrice),
+                leadTimeDays: parseInt(newLink.leadTimeDays)
+            });
+            setShowAddForm(false);
+            setNewLink({ productId: '', costPrice: '', leadTimeDays: '' });
+            fetchSupplierProducts(); // Refresh list
+        } catch (err) {
+            alert("Failed to link product. It might already be assigned to this supplier.");
+        }
+    };
+
     const handleUpdate = async (id, costPrice, leadTimeDays) => {
         try {
-            // Matches @PatchMapping("/{id}")
             await api.patch(`/api/core/supplier-products/${id}`, {
                 costPrice: parseFloat(costPrice),
                 leadTimeDays: parseInt(leadTimeDays)
             });
-            fetchSupplierProducts(); // Refresh
+            fetchSupplierProducts();
         } catch (err) {
-            alert("Update failed. Check your values.");
+            alert("Update failed.");
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Remove this product from this supplier's catalog?")) return;
         try {
-            // Matches @DeleteMapping("/{id}")
             await api.delete(`/api/core/supplier-products/${id}`);
             fetchSupplierProducts();
         } catch (err) {
@@ -66,28 +96,82 @@ const SupplierProductView = () => {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                    <ArrowLeft size={20} />
-                </Button>
-                <h1 className="text-2xl font-bold italic">Supplier Catalog Management</h1>
-            </div>
-
-            <div className="flex items-center gap-4 border-b pb-6">
-                <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full">
-                    <ArrowLeft size={20} />
-                </Button>
-                <div>
-                    <div className="flex items-center gap-2">
-                        <Truck className="text-slate-400" size={16} />
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Supplier Catalog</span>
+            {/* Header Section */}
+            <div className="flex items-center justify-between border-b pb-6">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+                        <ArrowLeft size={20} />
+                    </Button>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <Truck className="text-slate-400" size={16} />
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Supplier Catalog</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-slate-900">
+                            {supplierName || "Catalog Management"}
+                        </h1>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900">
-                        {loading ? "Loading..." : supplierName || "Unknown Supplier"}
-                    </h1>
                 </div>
+
+                {!showAddForm && (
+                    <Button onClick={() => setShowAddForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Plus size={18} className="mr-2" /> Add Product to Catalog
+                    </Button>
+                )}
             </div>
 
+            {/* Quick Add Form */}
+            {showAddForm && (
+                <Card className="border-2 border-blue-100 bg-blue-50/30">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-lg">Link Product to Supplier</CardTitle>
+                        <Button variant="ghost" size="icon" onClick={() => setShowAddForm(false)}>
+                            <X size={18} />
+                        </Button>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleCreateLink} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Select Product</label>
+                                <select
+                                    className="w-full h-10 px-3 rounded-md border border-slate-200 bg-white text-sm"
+                                    value={newLink.productId}
+                                    onChange={(e) => setNewLink({...newLink, productId: e.target.value})}
+                                    required
+                                >
+                                    <option value="">Choose product...</option>
+                                    {masterProducts.map(p => (
+                                        <option key={p.productId || p.id} value={p.productId || p.id}>
+                                            {p.name} ({p.sku})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Unit Cost</label>
+                                <Input
+                                    type="number" step="0.01" required
+                                    value={newLink.costPrice}
+                                    onChange={(e) => setNewLink({...newLink, costPrice: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-500 uppercase">Lead Time (Days)</label>
+                                <Input
+                                    type="number" required
+                                    value={newLink.leadTimeDays}
+                                    onChange={(e) => setNewLink({...newLink, leadTimeDays: e.target.value})}
+                                />
+                            </div>
+                            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 w-full">
+                                <Save size={18} className="mr-2" /> Confirm Link
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Existing Catalog Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {products.map((item) => (
                     <Card key={item.id} className="shadow-sm border-slate-200">
@@ -141,9 +225,11 @@ const SupplierProductView = () => {
                 ))}
             </div>
 
-            {products.length === 0 && (
+            {products.length === 0 && !showAddForm && (
                 <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-slate-200">
+                    <Package className="mx-auto text-slate-200 mb-4" size={48} />
                     <p className="text-slate-400">No products assigned to this supplier.</p>
+                    <Button variant="link" onClick={() => setShowAddForm(true)}>Add your first product</Button>
                 </div>
             )}
         </div>

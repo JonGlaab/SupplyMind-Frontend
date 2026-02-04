@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import api from '../../services/api.js';
+import { Button } from '../../components/ui/button.jsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
+import { Badge } from '../../components/ui/badge.jsx';
 import {
     ArrowLeft, Package, History,
     AlertTriangle, Loader2, Search
 } from 'lucide-react';
-import { Input } from '../components/ui/input';
+import { Input } from '../../components/ui/input.jsx';
 
 const WarehouseInventory = () => {
     const { warehouseId } = useParams();

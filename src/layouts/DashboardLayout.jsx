@@ -58,7 +58,14 @@ const DashboardLayout = () => {
             label: 'Admin Panel',
             path: '/admin/dashboard',
             icon: <ShieldCheck size={20} />
-        }] : []),
+        },
+            { label: 'Product list', path: '/productlist', icon: <Cog size={20} /> },
+            { label: 'inventory', path: '/inventory', icon: <Cog size={20} /> },
+            { label: 'purchase orders', path: '/procurement/purchaseorders', icon: <Cog size={20} /> },
+            { label: 'returns inspection', path: '/returnsinspection', icon: <Cog size={20} /> },] : []),
+            { label: 'Warehouse List', path: '/manager/warehouselist', icon: <Cog size={20} /> },
+            { label: 'Supplier List', path: '/procurement/suppliers', icon: <Cog size={20} /> },
+            { label: 'warehouse portal', path: '/warehouseportal', icon: <Cog size={20} /> },
 
         ...(userRole === 'STAFF' ? [{
             label: 'Inventory',
@@ -85,12 +92,7 @@ const DashboardLayout = () => {
         }] : []),
 
         // 6. SETTINGS (Visible to everyone)
-        { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> },
-
-        { label: 'Product list', path: '/productlist', icon: <Cog size={20} /> },
-        { label: 'inventory', path: '/inventory', icon: <Cog size={20} /> },
-        { label: 'purchase orders', path: '/purchaseorders', icon: <Cog size={20} /> },
-        { label: 'returns inspection', path: '/returnsinspection', icon: <Cog size={20} /> },
+        { label: 'User Settings', path: '/settings', icon: <Cog size={20} /> }
     ];
 
     return (
@@ -143,7 +145,6 @@ const DashboardLayout = () => {
                     </button>
                 </div>
             </aside>
-
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">

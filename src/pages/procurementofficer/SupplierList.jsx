@@ -168,7 +168,7 @@ const SupplierList = () => {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => navigate(`/suppliers/${s.supplierId}/products`)}
+                                            onClick={() => navigate(`/procurement/suppliers/${s.supplierId}/products`)}
                                         >
                                             <Package size={16} className="mr-2" /> View Products
                                         </Button>
