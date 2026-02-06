@@ -68,6 +68,13 @@ const DashboardLayout = () => {
             icon: <ShieldCheck size={20} />
         }] : []),
 
+        // Procurement Officer Dashboard
+        ...(userRole === 'PROCUREMENT_OFFICER' ? [{
+            label: 'Procurement Dashboard',
+            path: '/procurement/dashboard',
+            icon: <LayoutDashboard size={20} />
+        }] : []),
+
         // Operational Views (ADMIN has access to everything for testing)
         // TODO: Restrict these paths to specific roles before production
         { label: 'Product Catalog', path: '/productlist', icon: <Package size={20} /> },

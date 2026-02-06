@@ -14,7 +14,7 @@ import Settings from './pages/Settings.jsx';
 // Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
-const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
+import { ProcurementDashboard } from './pages/procurementofficer/ProcurementDashboard.jsx';
 
 // Mobile Component Placeholders
 import MobileSetup from './mobile/MobileSetup.jsx';
