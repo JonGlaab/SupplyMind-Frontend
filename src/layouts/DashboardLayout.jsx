@@ -13,7 +13,8 @@ import {
     ShieldCheck,
     RotateCcw,
     Settings,
-    Smartphone // Added for mobile testing link
+    Smartphone,
+    MessageCircle// Added for mobile testing link
 } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 import { cn } from '../lib/utils';
@@ -77,6 +78,7 @@ const DashboardLayout = () => {
 
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Procurement & Inventory' }] : []),
         ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
+            { label: 'Inbox', path: '/inbox', icon: <MessageCircle size={20} /> },
             { label: 'Product Management', path: '/productlist', icon: <Package size={20} /> },
             { label: 'Supplier Management', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
