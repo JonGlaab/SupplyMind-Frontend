@@ -24,15 +24,14 @@ import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 
 // Warehouse/Inventory Pages
 import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
-import InventoryView from "./pages/core/InventoryView.jsx";
-import ProductList from "./pages/core/ProductList.jsx";
+import InventoryView from "./pages/staff/InventoryView.jsx";
+import ProductList from "./pages/shared/ProductList.jsx";
 import { PurchaseOrders } from "./pages/procurementofficer/PurchaseOrders.jsx";
-import { ReturnsInspection } from "./pages/core/ReturnsInspection.jsx";
-import Inventory from "./pages/core/Inventory.jsx";
+import { ReturnsInspection } from "./pages/shared/ReturnsInspection.jsx";
 import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
 import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
-import WarehouseList from "./pages/manager/WarehouseList.jsx";
-import WarehouseInventory from "./pages/core/WarehouseInventory.jsx";
+import WarehouseList from "./pages/shared/WarehouseList.jsx";
+import WarehouseInventory from "./pages/shared/WarehouseInventory.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
@@ -75,8 +74,6 @@ const App = () => {
                 <Route path="warehouse/inventory" element={<InventoryView />} />
                 <Route path="productlist" element={<ProductList />} />
                 <Route path="returnsinspection" element={<ReturnsInspection />} />
-                <Route path="inventory" element={<Inventory />} />
-                <Route path="inventoryview" element={<InventoryView />} />
             </Route>
 
             {/* 3. MOBILE ROUTES */}

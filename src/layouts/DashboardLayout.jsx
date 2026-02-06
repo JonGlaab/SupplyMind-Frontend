@@ -55,32 +55,40 @@ const DashboardLayout = () => {
         // 1. PRIMARY DASHBOARDS
         ...(userRole === 'ADMIN' ? [{ label: 'Admin System', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
 
-        ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [{
+        ...(userRole === 'MANAGER' ? [{
             label: 'Manager Intelligence', path: '/manager/dashboard', icon: <LayoutDashboard size={20} />
         }] : []),
 
-        ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [{
+        ...(userRole === 'PROCUREMENT_OFFICER' ? [{
             label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} />
         }] : []),
 
-        ...((userRole === 'WAREHOUSE_STAFF' || userRole === 'ADMIN') ? [{
+        ...(userRole === 'WAREHOUSE_STAFF' ? [{
             label: 'Warehouse Portal', path: '/warehouse/dashboard', icon: <Package size={20} />
         }] : []),
 
         // 2. ROLE-SPECIFIC TOOLS (Separated for Admin)
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Managerial Tools' }] : []),
         ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
-            { label: 'Warehouse Network', path: '/manager/warehouselist', icon: <Truck size={20} /> }
+            { label: 'Product Management', path: '/productlist', icon: <Package size={20} /> },
+            { label: 'Warehouse Network', path: '/manager/warehouselist', icon: <Truck size={20} /> },
+            { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> }
         ] : []),
 
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Procurement & Inventory' }] : []),
         ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
+            { label: 'Product Management', path: '/productlist', icon: <Package size={20} /> },
             { label: 'Supplier Management', path: '/procurement/suppliers', icon: <Users size={20} /> },
-            { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> }
+            { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
+            { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> },
         ] : []),
 
-        { label: 'Stock Management', path: '/inventory', icon: <Package size={20} /> },
-        { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> },
+        ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Warehouse Peons' }] : []),
+        ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
+            { label: 'Warehouse dashboard', path: 'warehouse/dashboard', icon: <Package size={20} /> },
+            { label: 'Warehouse inventories', path: 'warehouse/inventory', icon: <Package size={20} /> },
+            { label: 'received order?', path: 'warehouse/inventory', icon: <Users size={20} /> },
+        ] : []),
 
         // 3. TESTING & SYSTEM
         ...(userRole === 'ADMIN' ? [
