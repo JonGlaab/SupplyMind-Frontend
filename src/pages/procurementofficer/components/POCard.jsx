@@ -25,7 +25,7 @@ const getStatusBadge = (status) => {
     return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
 };
 
-export function POCard({ po }) {
+export function POCard({ po, onViewDetails }) {
     const currentStep = statusToStep[po.status] || 1;
 
     return (
@@ -96,7 +96,7 @@ export function POCard({ po }) {
                             <Landmark size={16} className="mr-2" /> Process Payment
                         </Button>
                     )}
-                    <Button variant="outline" className="flex-1">
+                    <Button variant="outline" className="flex-1" onClick={onViewDetails}>
                         View Details
                     </Button>
                 </div>

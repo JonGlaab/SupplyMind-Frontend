@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import api from '../../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { AddToPODialog } from './AddToPODialog';
 
-export function LowStockTable() {
+export function LowStockTable({ onPoChange }) {
     const [lowStockItems, setLowStockItems] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
@@ -19,6 +18,7 @@ export function LowStockTable() {
 
     useEffect(() => {
         fetchInitialData();
+        fetchLowStockItems();
     }, []);
 
     useEffect(() => {
@@ -70,6 +70,7 @@ export function LowStockTable() {
 
     const handleItemAdded = () => {
         fetchLowStockItems();
+        onPoChange(); // Trigger a refresh in the parent component
     };
 
     return (

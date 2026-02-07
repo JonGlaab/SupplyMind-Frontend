@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { LowStockTable } from './components/LowStockTable';
 import { PurchaseOrderList } from './components/PurchaseOrderList';
 
 export function ProcurementDashboard() {
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handlePurchaseOrderChange = () => {
+        setRefreshKey(prevKey => prevKey + 1);
+    };
+
     return (
         <div className="space-y-6 p-6">
             <div className="flex justify-between items-end">
@@ -20,10 +26,10 @@ export function ProcurementDashboard() {
                 </TabsList>
 
                 <TabsContent value="low-stock" className="mt-6">
-                    <LowStockTable />
+                    <LowStockTable onPoChange={handlePurchaseOrderChange} />
                 </TabsContent>
                 <TabsContent value="purchase-orders" className="mt-6">
-                    <PurchaseOrderList />
+                    <PurchaseOrderList refreshKey={refreshKey} />
                 </TabsContent>
             </Tabs>
         </div>
