@@ -36,16 +36,17 @@ export function AddToPODialog({ isOpen, onOpenChange, item, onAdded }) {
                 const newPO = await api.post('/api/core/purchase-orders', {
                     supplierId: item.supplierId,
                     warehouseId: item.warehouseId,
-                    // buyerId will be set by the backend based on the authenticated user
                 });
-                await api.post(`/api/core/purchase-orders/${newPO.data.id}/items`, {
+                await api.post(`/api/core/purchase-orders/${newPO.data.poId}/items`, {
                     productId: item.productId,
-                    quantity: quantity,
+                    orderedQty: quantity,
+                    unitCost: item.unitPrice // Assuming unitPrice is available on the item
                 });
             } else {
                 await api.post(`/api/core/purchase-orders/${selectedPO}/items`, {
                     productId: item.productId,
-                    quantity: quantity,
+                    orderedQty: quantity,
+                    unitCost: item.unitPrice
                 });
             }
             onAdded();
@@ -80,8 +81,8 @@ export function AddToPODialog({ isOpen, onOpenChange, item, onAdded }) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {draftPOs.map(po => (
-                                        <SelectItem key={po.id} value={po.id}>
-                                            PO #{po.id}
+                                        <SelectItem key={po.poId} value={String(po.poId)}>
+                                            PO #{po.poId}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
