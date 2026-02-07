@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
-import api from '../../services/api';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
-import { Search, PackagePlus, Warehouse, History } from 'lucide-react';
+import api from '../../services/api.js';
+import { Button } from '../../components/ui/button.jsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
+import { Input } from '../../components/ui/input.jsx';
+import { Badge } from '../../components/ui/badge.jsx';
+import { Search, PackagePlus, Warehouse, History, ArrowRightLeft } from 'lucide-react';
 
 const InventoryView = () => {
     const [inventory, setInventory] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedWarehouse, setSelectedWarehouse] = useState(1);
     const [recentActions, setRecentActions] = useState([]);
-    const [userRole] = useState(localStorage.getItem('role'));
+    // FIXED: Changed 'role' to 'userRole' to match your Login/App logic
+    const [userRole] = useState(localStorage.getItem('userRole'));
 
     useEffect(() => {
         fetchInventory();
@@ -34,15 +35,36 @@ const InventoryView = () => {
                 productId,
                 amount: parseInt(amount)
             });
-
-            // Session log for immediate feedback
-            const logEntry = `${new Date().toLocaleTimeString()}: Added ${amount} units to ${productName}`;
-            setRecentActions(prev => [logEntry, ...prev].slice(0, 5));
-
+            logAction(`Added ${amount} units to ${productName}`);
             fetchInventory();
         } catch (err) {
             console.error("Update failed", err);
         }
+    };
+
+    const handleTransfer = async (productId, productName, amount) => {
+        if (!amount || amount <= 0) return;
+        // Determine destination (if 1 go to 2, if 2 go to 1)
+        const destinationId = selectedWarehouse == 1 ? 2 : 1;
+        const destinationName = selectedWarehouse == 1 ? "East Distribution" : "Main Warehouse";
+
+        try {
+            await api.post('/api/inventory/transfer', {
+                fromWarehouseId: selectedWarehouse,
+                toWarehouseId: destinationId,
+                productId,
+                amount: parseInt(amount)
+            });
+            logAction(`Transferred ${amount} ${productName} to ${destinationName}`);
+            fetchInventory();
+        } catch (err) {
+            alert("Transfer failed. Ensure you have enough stock.");
+        }
+    };
+
+    const logAction = (msg) => {
+        const entry = `${new Date().toLocaleTimeString()}: ${msg}`;
+        setRecentActions(prev => [entry, ...prev].slice(0, 5));
     };
 
     const filteredInventory = inventory.filter(item =>
@@ -86,7 +108,7 @@ const InventoryView = () => {
                                 <tr>
                                     <th className="p-4 text-xs font-bold uppercase text-slate-500">Product / SKU</th>
                                     <th className="p-4 text-xs font-bold uppercase text-slate-500">Stock Level</th>
-                                    <th className="p-4 text-xs font-bold uppercase text-slate-500 text-center">Receive Stock</th>
+                                    <th className="p-4 text-xs font-bold uppercase text-slate-500 text-center">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -105,12 +127,14 @@ const InventoryView = () => {
                                             <div className="flex gap-2 justify-center">
                                                 <Input
                                                     type="number"
-                                                    className="w-20 h-9"
+                                                    className="w-20 h-9 text-center"
                                                     placeholder="Qty"
                                                     id={`qty-${item.product.id}`}
                                                 />
+                                                {/* Add Stock Button */}
                                                 <Button
                                                     size="sm"
+                                                    title="Receive Stock"
                                                     className="bg-emerald-600 hover:bg-emerald-700 h-9"
                                                     onClick={() => {
                                                         const input = document.getElementById(`qty-${item.product.id}`);
@@ -119,6 +143,20 @@ const InventoryView = () => {
                                                     }}
                                                 >
                                                     <PackagePlus size={16} />
+                                                </Button>
+                                                {/* Transfer Stock Button */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    title="Transfer to other Warehouse"
+                                                    className="h-9 border-blue-200 text-blue-600 hover:bg-blue-50"
+                                                    onClick={() => {
+                                                        const input = document.getElementById(`qty-${item.product.id}`);
+                                                        handleTransfer(item.product.id, item.product.name, input.value);
+                                                        input.value = '';
+                                                    }}
+                                                >
+                                                    <ArrowRightLeft size={16} />
                                                 </Button>
                                             </div>
                                         </td>
@@ -131,7 +169,6 @@ const InventoryView = () => {
                 </Card>
             </div>
 
-            {/* Sidebar for quick feedback */}
             <div className="lg:col-span-1">
                 <Card className="h-full shadow-sm">
                     <CardHeader className="flex flex-row items-center gap-2 border-b">
@@ -146,7 +183,7 @@ const InventoryView = () => {
                         ) : (
                             <div className="space-y-3">
                                 {recentActions.map((action, i) => (
-                                    <div key={i} className="text-[11px] leading-relaxed p-3 bg-slate-50 rounded-lg border-l-4 border-emerald-500 shadow-sm">
+                                    <div key={i} className="text-[11px] leading-relaxed p-3 bg-slate-50 rounded-lg border-l-4 border-blue-500 shadow-sm">
                                         {action}
                                     </div>
                                 ))}

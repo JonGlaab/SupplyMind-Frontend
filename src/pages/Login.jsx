@@ -22,49 +22,49 @@ const Login = () => {
         setIsLoading(true);
         setError('');
 
-        try {
-            const res = await api.post('/api/auth/login', formData);
-            const { token, role, needsPasswordChange } = res.data;
+            try {
+                const res = await api.post('/api/auth/login', formData);
+                const { token, role, needsPasswordChange } = res.data;
 
-            // Save using key 'role' to match App.jsx logic
-            localStorage.setItem('token', token);
-            localStorage.setItem('userRole', role);
+                // 1. CLEAN SLATE: Prevents old roles from leaking into new sessions
+                localStorage.clear();
 
-            // Security Check (Force Password Change)
-            if (needsPasswordChange) {
-                navigate('/change-password');
-                return;
+                // 2. SAVE DATA
+                localStorage.setItem('token', token);
+                localStorage.setItem('userRole', role);
+
+                if (needsPasswordChange) {
+                    navigate('/change-password');
+                    return;
+                }
+
+                // SMART ROUTING (Role + Device)
+                const isMobile = isMobileDevice();
+                if (isMobile && (role === 'MANAGER' || role === 'PROCUREMENT_OFFICER')) {
+                    navigate('/mobile/home');
+                    return;
+                }
+
+                // Standard Role Routing (Desktop / Non-Mobile users)
+                switch (role) {
+                    case 'ADMIN':
+                        navigate('/admin/dashboard');
+                        break;
+                    case 'MANAGER':
+                        navigate('/manager/dashboard');
+                        break;
+                    case 'PROCUREMENT_OFFICER':
+                        navigate('/procurement/dashboard');
+                        break;
+                    default:
+                        navigate('/warehouse/dashboard');
+                }
+            } catch (err) {
+                console.error(err);
+                setError("Invalid credentials. Please try again.");
+            } finally {
+                setIsLoading(false);
             }
-
-            // SMART ROUTING (Role + Device)
-            const isMobile = isMobileDevice();
-
-            // Specialized Mobile Roles
-            if (isMobile && (role === 'MANAGER' || role === 'PROCUREMENT_OFFICER')) {
-                navigate('/mobile/home');
-                return;
-            }
-
-            // Standard Role Routing (Desktop / Non-Mobile users)
-            // We now use the unified paths defined in your updated App.jsx
-            switch (role) {
-                case 'ADMIN':
-                case 'MANAGER':
-                    navigate('/dashboard'); // Both Admin and Manager now share this unified path
-                    break;
-                case 'PROCUREMENT_OFFICER':
-                    navigate('/procurement'); // Matched to Sidebar view="procurement"
-                    break;
-                default:
-                    navigate('/inventory'); // Default landing for Staff/Warehouse
-            }
-
-        } catch (err) {
-            console.error(err);
-            setError("Invalid credentials. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     return (
