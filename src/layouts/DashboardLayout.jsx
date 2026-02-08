@@ -80,24 +80,20 @@ const DashboardLayout = () => {
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Procurement & Inventory' }] : []),
         ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
             { label: 'Inbox', path: '/inbox', icon: <MessageCircle size={20} /> },
-            { label: 'Product Management', path: '/productlist', icon: <Package size={20} /> },
             { label: 'Supplier Management', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
-            { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> },
         ] : []),
 
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Warehouse Peons' }] : []),
         ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
             { label: 'Warehouse dashboard', path: 'warehouse/dashboard', icon: <Package size={20} /> },
             { label: 'Warehouse inventories', path: 'warehouse/inventory', icon: <Package size={20} /> },
-            { label: 'received order?', path: 'warehouse/inventory', icon: <Users size={20} /> },
         ] : []),
 
         // 3. TESTING & SYSTEM
         ...(userRole === 'ADMIN' ? [
             { type: 'divider', label: 'Developer Testing' },
             { label: 'Mobile Interface', path: '/mobile/home', icon: <Smartphone size={20} /> },
-            { label: 'Product List', path: '/productlist', icon: <Package size={20} /> }
         ] : []),
 
         { type: 'divider' },
