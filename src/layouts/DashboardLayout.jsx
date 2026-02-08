@@ -71,6 +71,7 @@ const DashboardLayout = () => {
         // 2. ROLE-SPECIFIC TOOLS (Separated for Admin)
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Managerial Tools' }] : []),
         ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
+            { label: 'PO Approvals', path: '/manager/po-approvals', icon: <ShoppingCart size={20} /> },
             { label: 'Product Management', path: '/productlist', icon: <Package size={20} /> },
             { label: 'Warehouse Network', path: '/manager/warehouselist', icon: <Truck size={20} /> },
             { label: 'Returns & Inspection', path: '/returnsinspection', icon: <RotateCcw size={20} /> }
