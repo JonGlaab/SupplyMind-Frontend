@@ -4,44 +4,21 @@ import {
     X, Phone, Video, AlertCircle, Paperclip, Loader2, FileText, Download, RefreshCw
 } from 'lucide-react';
 import { Input } from '../../components/ui/input';
-import { Progress } from '../../components/ui/progress';
 import { Button } from '../../components/ui/button';
-import InboxService from '../../services/inbox.service'; //
+import InboxService from '../../services/inbox.service';
 
-// --- Helper: Status to Progress % ---
-const getStatusProgress = (status) => {
-    const map = {
-        'EMAIL_SENT': 30,
-        'SUPPLIER_REPLIED': 35,
-        'DELAY_EXPECTED': 35,
-        'CONFIRMED': 60,
-        'PENDING_PAYMENT': 80,
-        'PAID': 90,
-        'RECEIVED': 100
-    };
-    return map[status] || 5;
-};
-
-// --- Helper: Status Color ---
-const getProgressColor = (status) => {
-    if (status === 'DELAY_EXPECTED') return 'bg-red-500';
-    if (status === 'RECEIVED' || status === 'PAID') return 'bg-green-500';
-    return 'bg-blue-600';
-};
+import PoStatusProgress, { getStatusColor } from '../../components/PoStatusProgress';
 
 export default function InboxPage() {
-    // --- State ---
     const [conversations, setConversations] = useState([]);
     const [selectedPo, setSelectedPo] = useState(null);
     const [messages, setMessages] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loadingList, setLoadingList] = useState(true);
     const [loadingChat, setLoadingChat] = useState(false);
-
-    // Split View State for Attachments
     const [activeAttachment, setActiveAttachment] = useState(null);
 
-    // 1. Fetch Sidebar List (Active Conversations)
+    // 1. Fetch Sidebar List
     useEffect(() => {
         loadConversations();
     }, []);
@@ -57,11 +34,11 @@ export default function InboxPage() {
         }
     };
 
-    // 2. Fetch Chat Messages & Reset Attachment view
+    // 2. Fetch Chat
     useEffect(() => {
         if (!selectedPo) return;
 
-        setActiveAttachment(null); // Close attachment when switching chats
+        setActiveAttachment(null);
 
         const fetchChat = async () => {
             setLoadingChat(true);
@@ -77,17 +54,13 @@ export default function InboxPage() {
         };
 
         fetchChat();
-
-        // Optional: Poll for new messages every 30s
-        const interval = setInterval(fetchChat, 30000);
+        const interval = setInterval(fetchChat, 30000); // Poll every 30s
         return () => clearInterval(interval);
     }, [selectedPo]);
 
-    // 3. Handle Attachment Click (The Fix)
+    // 3. Handle Attachment
     const handleAttachmentClick = async (fileName, messageId) => {
         try {
-            // Use the Service to get the Blob URL safely
-            // This handles both "Local PO PDFs" and "Gmail Attachments"
             const result = await InboxService.getAttachmentUrl(selectedPo.id, fileName, messageId);
             setActiveAttachment(result);
         } catch (error) {
@@ -96,7 +69,6 @@ export default function InboxPage() {
         }
     };
 
-    // --- Render Helpers ---
     const filteredConversations = conversations.filter(po =>
         po.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         `PO-${po.id}`.toLowerCase().includes(searchTerm.toLowerCase())
@@ -105,7 +77,7 @@ export default function InboxPage() {
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
 
-            {/* LEFT SIDEBAR: Conversations List */}
+            {/* LEFT SIDEBAR */}
             <div className="w-80 bg-white border-r border-slate-200 flex flex-col z-10">
                 <div className="p-4 border-b border-slate-100">
                     <h1 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -144,10 +116,10 @@ export default function InboxPage() {
                                     <Building2 size={14}/> {po.supplier.name}
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full text-white ${getProgressColor(po.status)}`}>
+                                    {/* 👇 Use the imported helper for consistent colors */}
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full text-white ${getStatusColor(po.status)}`}>
                                         {po.status.replace('_', ' ')}
                                     </span>
-                                    {/* Alert Icon if Delay Expected */}
                                     {po.status === 'DELAY_EXPECTED' && <AlertCircle size={16} className="text-red-500" />}
                                 </div>
                             </div>
@@ -166,9 +138,8 @@ export default function InboxPage() {
                                 PO-{selectedPo.id}
                                 <span className="text-sm font-normal text-slate-500">| {selectedPo.supplier.name}</span>
                             </h2>
-                            <div className="flex items-center gap-2 mt-1 w-64">
-                                <Progress value={getStatusProgress(selectedPo.status)} className="h-1.5" />
-                                <span className="text-xs text-slate-400 font-medium">{selectedPo.status}</span>
+                            <div className="mt-1 w-64">
+                                <PoStatusProgress status={selectedPo.status} />
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -195,7 +166,6 @@ export default function InboxPage() {
                                         <div className={`max-w-[70%] rounded-xl p-4 shadow-sm ${
                                             isMe ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800'
                                         }`}>
-                                            {/* Header */}
                                             <div className="flex items-center justify-between gap-4 mb-2">
                                                 <span className={`text-xs font-bold ${isMe ? 'text-blue-100' : 'text-slate-500'}`}>
                                                     {isMe ? 'You' : msg.from}
@@ -205,7 +175,6 @@ export default function InboxPage() {
                                                 </span>
                                             </div>
 
-                                            {/* Subject */}
                                             {msg.subject && (
                                                 <div className={`text-xs font-semibold mb-2 pb-2 border-b ${
                                                     isMe ? 'border-blue-500/50' : 'border-slate-100'
@@ -214,12 +183,10 @@ export default function InboxPage() {
                                                 </div>
                                             )}
 
-                                            {/* Body (Snippet) */}
                                             <div className="text-sm whitespace-pre-wrap leading-relaxed">
                                                 {msg.snippet || msg.body}
                                             </div>
 
-                                            {/* Attachments */}
                                             {msg.attachments && msg.attachments.length > 0 && (
                                                 <div className="mt-3 pt-3 border-t border-dashed border-opacity-30 flex flex-wrap gap-2">
                                                     {msg.attachments.map((att, idx) => (
@@ -246,7 +213,7 @@ export default function InboxPage() {
                         )}
                     </div>
 
-                    {/* --- SPLIT VIEW: Attachment Preview --- */}
+                    {/* Attachment Preview (Split View) */}
                     {activeAttachment && (
                         <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-100 border-l border-slate-300 shadow-2xl z-30 flex flex-col slide-in-right">
                             <div className="h-12 bg-white border-b border-slate-200 flex items-center justify-between px-4">
@@ -260,8 +227,6 @@ export default function InboxPage() {
                                     </Button>
                                 </div>
                             </div>
-
-                            {/* Viewer Content */}
                             <div className="flex-1 p-4 overflow-hidden flex items-center justify-center">
                                 {activeAttachment.type === 'pdf' ? (
                                     <iframe
