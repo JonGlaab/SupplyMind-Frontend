@@ -1,4 +1,4 @@
-import React from 'react'; // Added this
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
@@ -16,6 +16,7 @@ import Settings from './pages/Settings.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
 import { ProcurementDashboard } from './pages/procurementofficer/ProcurementDashboard.jsx';
+import { PurchaseOrderApproval } from './pages/manager/PurchaseOrderApproval.jsx';
 
 // Mobile Components
 import MobileSetup from './mobile/MobileSetup.jsx';
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
                 <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="manager/po-approvals" element={<PurchaseOrderApproval />} />
                 <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
                 <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
                 <Route path="procurement/suppliers" element={<SupplierList />} />
