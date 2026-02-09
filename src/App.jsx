@@ -11,7 +11,7 @@ import ChangePassword from './pages/ChangePassword.jsx';
 import Settings from './pages/Settings.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
-const ProcurementDashboard = () => <div className="p-10 text-2xl font-bold">Procurement Dashboard</div>;
+import ProcurementDashboard from "./pages/procurementofficer/ProcurementDashboard.jsx";
 
 // Warehouse/Inventory
 import ProductList from "./pages/shared/ProductList.jsx";
