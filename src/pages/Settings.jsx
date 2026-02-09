@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LinkDeviceQR from '../components/LinkDeviceQR.jsx';
 import api from '../services/api.js';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card.jsx';
-import { User, Mail, Shield, BadgeCheck, Loader2, PenTool, Save } from 'lucide-react';
+import { User, Mail, Shield, Loader2, PenTool, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
 
 const Settings = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+
     const [signatureUrl, setSignatureUrl] = useState('');
-    const [savingSig, setSavingSig] = useState(false);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         loadProfile();
@@ -28,124 +30,226 @@ const Settings = () => {
         }
     };
 
-    const handleSaveSignature = async () => {
-        setSavingSig(true);
+    const handleFileSelect = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // 1. Validate File Type
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!validTypes.includes(file.type)) {
+            alert('Invalid file type. Please upload a PNG or JPG image.');
+            return;
+        }
+
+        // 2. Validate Size (Max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('File is too large. Max size is 2MB.');
+            return;
+        }
+
+        await uploadSignature(file);
+    };
+
+    const uploadSignature = async (file) => {
+        if (!user) return;
+        setUploading(true);
+
         try {
-            await api.put('/api/auth/me/signature', { signatureUrl });
-            setUser(prev => ({ ...prev, signatureUrl })); // Update local UI
+            // --- 1. Prepare Metadata ---
+            const cleanFirstName = (user.firstName || '').trim().replace(/\s+/g, '_');
+            const cleanLastName = (user.lastName || '').trim().replace(/\s+/g, '_');
+            const fullName = `${cleanFirstName}_${cleanLastName}`;
+
+            const fileExtension = file.name.split('.').pop();
+            const specificFileName = `${fullName}_signature.${fileExtension}`;
+
+            // --- 2. Request Upload URL (Presigned PUT) ---
+            const presignRes = await api.post('/api/storage/presign-put', {
+                fileName: specificFileName,
+                contentType: file.type,
+                category: fullName,
+                ownerId: user.id
+            });
+
+            const uploadUrl = presignRes.data.putUrl || presignRes.data.uploadUrl;
+            const objectKey = presignRes.data.objectKey || presignRes.data.key;
+
+            if (!uploadUrl) throw new Error("Backend did not return an upload URL");
+
+            // --- 3. Upload to Storage (Backblaze/S3) ---
+            const uploadRes = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'Content-Type': file.type
+                }
+            });
+
+            if (!uploadRes.ok) throw new Error('Failed to upload image to storage provider');
+
+            // --- 4. Get Viewable URL (Presigned GET) ---
+            const getRes = await api.get('/api/storage/presign-get', {
+                params: { objectKey }
+            });
+
+
+            const publicUrl = typeof getRes.data === 'string' ? getRes.data : Object.values(getRes.data)[0];
+
+            // --- 5. Save to Profile ---
+            await api.put('/api/auth/me/signature', { signatureUrl: publicUrl });
+
+            // --- 6. Update UI ---
+            setSignatureUrl(publicUrl);
+            setUser(prev => ({ ...prev, signatureUrl: publicUrl }));
+
         } catch (error) {
-            console.error("Failed to save signature", error);
+            console.error("Upload failed", error);
+            alert("Failed to upload signature. Please try again.");
         } finally {
-            setSavingSig(false);
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleRemoveSignature = async () => {
+        if (!confirm('Are you sure you want to remove your signature?')) return;
+        try {
+            await api.put('/api/auth/me/signature', { signatureUrl: null });
+            setSignatureUrl('');
+            setUser(prev => ({ ...prev, signatureUrl: '' }));
+        } catch (error) {
+            console.error("Failed to remove signature", error);
         }
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full min-h-[50vh]">
-                <Loader2 className="animate-spin text-blue-600" size={40} />
+            <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
         );
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-slate-900 mb-8">Account Settings</h1>
+        <div className="max-w-5xl mx-auto space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Account Settings</h1>
+                <p className="text-slate-500 mt-2">Manage your profile, security, and preferences.</p>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* 1. Profile Info */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* 1. Profile Information */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Profile Information</CardTitle>
-                            <CardDescription>Manage your personal details.</CardDescription>
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5 text-blue-600" />
+                                Personal Information
+                            </CardTitle>
+                            <CardDescription>Update your basic profile details.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                                        <User size={14} /> First Name
-                                    </label>
-                                    <div className="p-3 bg-slate-50 border rounded-md font-medium text-slate-900">
-                                        {user?.firstName}
-                                    </div>
+                                    <label className="text-sm font-medium text-slate-700">First Name</label>
+                                    <Input value={user?.firstName || ''} readOnly className="bg-slate-50" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                                        <User size={14} /> Last Name
-                                    </label>
-                                    <div className="p-3 bg-slate-50 border rounded-md font-medium text-slate-900">
-                                        {user?.lastName}
-                                    </div>
+                                    <label className="text-sm font-medium text-slate-700">Last Name</label>
+                                    <Input value={user?.lastName || ''} readOnly className="bg-slate-50" />
                                 </div>
                             </div>
-
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                                     <Mail size={14} /> Email Address
                                 </label>
-                                <div className="p-3 bg-slate-50 border rounded-md font-medium text-slate-900">
-                                    {user?.email}
-                                </div>
+                                <Input value={user?.email || ''} readOnly className="bg-slate-50" />
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                                    <Shield size={14} /> System Role
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-200 uppercase">
-                                        <BadgeCheck size={14} />
-                                        {user?.role}
-                                    </span>
-                                </div>
+                            <div className="pt-2">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <Shield size={12} className="mr-1" />
+                                    {user?.role || 'USER'}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* 2. Digital Signature (Linked to AuthController) */}
+                    {/* 2. Digital Signature */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <PenTool size={20} /> Digital Signature
+                                <PenTool className="h-5 w-5 text-blue-600" />
+                                Digital Signature
                             </CardTitle>
                             <CardDescription>
-                                Used to sign Purchase Orders sent to suppliers.
+                                Upload a copy of your signature for Purchase Orders and official documents.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-500">
-                                    Signature Image URL
-                                </label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={signatureUrl}
-                                        onChange={(e) => setSignatureUrl(e.target.value)}
-                                        placeholder="https://example.com/signature.png"
-                                    />
-                                    <Button onClick={handleSaveSignature} disabled={savingSig}>
-                                        {savingSig ? <Loader2 className="animate-spin" size={16}/> : <Save size={16} />}
-                                        <span className="ml-2">Save</span>
-                                    </Button>
-                                </div>
-                                <p className="text-xs text-slate-400">
-                                    Paste a direct link to a PNG of your signature (transparent background recommended).
-                                </p>
-                            </div>
+                        <CardContent className="space-y-6">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/png, image/jpeg"
+                                onChange={handleFileSelect}
+                            />
 
-                            {user?.signatureUrl && (
-                                <div className="mt-4 p-4 border border-slate-200 rounded-lg bg-white">
-                                    <p className="text-xs text-slate-400 mb-2">Current Signature:</p>
-                                    <img
-                                        src={user.signatureUrl}
-                                        alt="Signature"
-                                        className="h-16 object-contain"
-                                        onError={(e) => e.target.style.display = 'none'}
-                                    />
+                            <div className="flex flex-col sm:flex-row gap-6 items-start">
+                                {/* Preview Area */}
+                                <div className="w-full sm:w-48 h-32 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 relative overflow-hidden group">
+                                    {signatureUrl ? (
+                                        <img
+                                            src={signatureUrl}
+                                            alt="Signature"
+                                            className="w-full h-full object-contain p-2"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <ImageIcon className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                                            <span className="text-xs text-slate-400">No signature</span>
+                                        </div>
+                                    )}
+
+                                    {uploading && (
+                                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+
+                                {/* Actions */}
+                                <div className="flex-1 space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <Button
+                                            onClick={() => fileInputRef.current.click()}
+                                            disabled={uploading}
+                                            variant="outline"
+                                            className="w-full sm:w-auto"
+                                        >
+                                            {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                            {signatureUrl ? 'Change Signature' : 'Upload Signature'}
+                                        </Button>
+
+                                        {signatureUrl && (
+                                            <Button
+                                                onClick={handleRemoveSignature}
+                                                variant="ghost"
+                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    <div className="text-xs text-slate-500 space-y-1">
+                                        <p>• Saved in: <span className="font-mono text-slate-600">/{user ? `${user.firstName}_${user.lastName}` : 'user'}/{user?.id}/...</span></p>
+                                        <p>• Accepted formats: <span className="font-medium text-slate-700">PNG, JPG</span></p>
+                                        <p>• Max file size: <span className="font-medium text-slate-700">2MB</span></p>
+                                    </div>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

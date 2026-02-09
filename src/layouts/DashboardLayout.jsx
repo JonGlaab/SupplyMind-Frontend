@@ -79,7 +79,6 @@ const DashboardLayout = () => {
 
         ...(userRole === 'ADMIN' ? [{ type: 'divider', label: 'Procurement & Inventory' }] : []),
         ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
-            { label: 'Inbox', path: '/inbox', icon: <MessageCircle size={20} /> },
             { label: 'Supplier Management', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
         ] : []),
@@ -170,6 +169,14 @@ const DashboardLayout = () => {
                         <span className="hidden sm:inline-block px-2 py-1 rounded bg-slate-100 text-[10px] font-bold text-slate-500 border">
                             {userRole}
                         </span>
+                        <button
+                            onClick={() => navigate('/inbox')}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative group"
+                            title="Inbox"
+                        >
+                            <MessageCircle size={20} />
+                            {/* Optional: Add unread count badge here later */}
+                        </button>
 
                         <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors relative">
                             <Bell size={20} />

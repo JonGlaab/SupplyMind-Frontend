@@ -6,7 +6,6 @@ const MobileLayout = () => {
     const location = useLocation();
 
     return (
-
         <div
             className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-slate-950 text-white overflow-hidden"
             style={{
@@ -14,7 +13,7 @@ const MobileLayout = () => {
                 touchAction: 'manipulation'
             }}
         >
-
+            {/* Header */}
             <header className="shrink-0 p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center z-20 shadow-md">
                 <span className="font-bold text-lg text-blue-400 tracking-tight">SupplyMind</span>
                 <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold border border-slate-700">
@@ -22,12 +21,13 @@ const MobileLayout = () => {
                 </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth bg-slate-950 relative">
+            {/* Main Content Area - Added p-4 for margin/padding */}
+            <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth bg-slate-950 relative p-4 pb-24">
                 <Outlet />
             </main>
 
-            <nav className="shrink-0 h-20 bg-slate-900 border-t border-slate-800 flex justify-around items-end pb-4 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
-
+            {/* Bottom Navigation */}
+            <nav className="shrink-0 h-20 bg-slate-900 border-t border-slate-800 flex justify-around items-end pb-4 z-20 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.3)] fixed bottom-0 w-full">
                 <button
                     onClick={() => navigate('/mobile/home')}
                     className={`flex flex-col items-center w-16 transition-colors duration-200 ${location.pathname.includes('home') ? 'text-blue-400' : 'text-slate-500'}`}
