@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { POCard } from '../procurementofficer/components/POCard';
 import { ApprovalModal } from './components/ApprovalModal';
@@ -8,7 +9,9 @@ import api from '../../services/api';
 export function PurchaseOrderApproval() {
     const [allOrders, setAllOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'pending';
+
     const [selectedPoId, setSelectedPoId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -70,7 +73,7 @@ export function PurchaseOrderApproval() {
                     </div>
                 </div>
 
-                <Tabs defaultValue="pending">
+                <Tabs defaultValue={activeTab} onValueChange={(value) => setSearchParams({ tab: value })}>
                     <TabsList>
                         <TabsTrigger value="pending">
                             Pending Approval ({pendingOrders.length})

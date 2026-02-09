@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Loader2, Package } from 'lucide-react';
 import api from '../../services/api';
 import { Button } from '../../components/ui/button';
@@ -9,6 +10,9 @@ import { PurchaseOrderDetailModal } from './components/PurchaseOrderDetailModal'
 export function PurchaseOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'all';
+
     const [selectedPoId, setSelectedPoId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -47,6 +51,19 @@ export function PurchaseOrders() {
         return orders.filter(po => po.status === status);
     };
 
+    const renderOrderList = (status) => {
+        const poList = filteredPOs(status);
+        return (
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {poList.length === 0 ? (
+                    <p className="text-muted-foreground text-center col-span-full py-10">No orders found with this status.</p>
+                ) : (
+                    poList.map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)
+                )}
+            </div>
+        );
+    };
+
     if (loading) return <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
 
     return (
@@ -60,7 +77,7 @@ export function PurchaseOrders() {
                     <Button className="bg-blue-600"><Package size={18} className="mr-2"/> New Order</Button>
                 </div>
 
-                <Tabs defaultValue="all">
+                <Tabs defaultValue={activeTab} onValueChange={(value) => setSearchParams({ tab: value })}>
                     <TabsList>
                         <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="DRAFT">Draft</TabsTrigger>
@@ -69,31 +86,11 @@ export function PurchaseOrders() {
                         <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="all">
-                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {filteredPOs('all').map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="DRAFT">
-                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {filteredPOs('DRAFT').map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="PENDING_APPROVAL">
-                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {filteredPOs('PENDING_APPROVAL').map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="APPROVED">
-                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {filteredPOs('APPROVED').map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="COMPLETED">
-                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {filteredPOs('COMPLETED').map(po => <POCard key={po.poId} po={po} onViewDetails={() => handleViewDetails(po.poId)} />)}
-                        </div>
-                    </TabsContent>
+                    <TabsContent value="all">{renderOrderList('all')}</TabsContent>
+                    <TabsContent value="DRAFT">{renderOrderList('DRAFT')}</TabsContent>
+                    <TabsContent value="PENDING_APPROVAL">{renderOrderList('PENDING_APPROVAL')}</TabsContent>
+                    <TabsContent value="APPROVED">{renderOrderList('APPROVED')}</TabsContent>
+                    <TabsContent value="COMPLETED">{renderOrderList('COMPLETED')}</TabsContent>
                 </Tabs>
             </div>
 

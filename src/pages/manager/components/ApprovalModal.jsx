@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
-import { Loader2, Check, X } from 'lucide-react';
+import { Loader2, Check, X, Save } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import api from '../../../services/api';
+
+const PO_STATUSES = [
+    "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED",
+    "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
+];
 
 export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRejected }) {
     const [po, setPo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [selectedStatus, setSelectedStatus] = useState('');
 
     useEffect(() => {
         if (isOpen && poId) {
@@ -19,6 +26,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
         try {
             const res = await api.get(`/api/core/purchase-orders/${poId}`);
             setPo(res.data);
+            setSelectedStatus(res.data.status);
         } catch (err) {
             console.error("Failed to fetch PO details", err);
         } finally {
@@ -30,7 +38,6 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
         try {
             await api.post(`/api/core/purchase-orders/${poId}/approve`);
             onPoApproved();
-            // In the next step, we will show the email view instead of closing
             onOpenChange(false);
         } catch (err) {
             console.error("Failed to approve PO", err);
@@ -38,8 +45,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     };
 
     const handleReject = async () => {
-        // For now, we'll just cancel the PO. We can add a reason later.
-        if (window.confirm("Are you sure you want to reject this purchase order?")) {
+        if (window.confirm("Are you sure you want to reject this purchase order? This will cancel it.")) {
             try {
                 await api.post(`/api/core/purchase-orders/${poId}/cancel`);
                 onPoRejected();
@@ -50,13 +56,23 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
         }
     };
 
+    const handleStatusUpdate = async () => {
+        try {
+            await api.post(`/api/core/purchase-orders/${poId}/status`, { status: selectedStatus });
+            onPoApproved(); // Re-use the same refresh logic
+            fetchPoDetails(); // Refresh the modal content
+        } catch (err) {
+            console.error("Failed to update status", err);
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl h-[80vh]">
                 <DialogHeader>
-                    <DialogTitle>Approve Purchase Order</DialogTitle>
+                    <DialogTitle>Purchase Order Details</DialogTitle>
                     <DialogDescription>
-                        Review the details of PO #{po?.poId} and approve or reject it.
+                        Review and manage PO #{po?.poId} for {po?.supplierName}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -79,19 +95,33 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                             </ul>
                         </div>
 
-                        {/* Right Panel: Email Preview (Placeholder) */}
+                        {/* Right Panel: Manual Status Update */}
                         <div className="bg-gray-100 p-4 rounded-md">
-                            <h3 className="font-bold">Email Preview</h3>
-                            <p className="text-sm text-gray-500">Email editor will go here.</p>
+                            <h3 className="font-bold">Manual Status Update</h3>
+                            <div className="flex items-center gap-2 mt-4">
+                                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {PO_STATUSES.map(status => (
+                                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Button onClick={handleStatusUpdate} size="sm">
+                                    <Save className="mr-2 h-4 w-4" /> Save
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 <DialogFooter>
-                    <Button variant="destructive" onClick={handleReject}>
+                    <Button variant="destructive" onClick={handleReject} disabled={po?.status !== 'PENDING_APPROVAL'}>
                         <X className="mr-2 h-4 w-4" /> Reject
                     </Button>
-                    <Button onClick={handleApprove}>
+                    <Button onClick={handleApprove} disabled={po?.status !== 'PENDING_APPROVAL'}>
                         <Check className="mr-2 h-4 w-4" /> Approve
                     </Button>
                 </DialogFooter>
