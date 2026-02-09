@@ -102,3 +102,5 @@ export function PurchaseOrderApproval() {
         </>
     );
 }
+
+export default PurchaseOrderApproval;

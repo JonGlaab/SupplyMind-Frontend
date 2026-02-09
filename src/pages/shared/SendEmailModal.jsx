@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { X, Send, Loader2, Sparkles, FileText } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Checkbox } from '../../components/ui/checkbox';
-import api from '../../services/api';
+import { Button } from '../../components/ui/button.jsx';
+import { Input } from '../../components/ui/input.jsx';
+import { Checkbox } from '../../components/ui/checkbox.jsx';
+import api from '../../services/api.js';
 
 export default function SendEmailModal({ po, isOpen, onClose, onEmailSent }) {
     if (!isOpen) return null;

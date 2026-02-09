@@ -5,34 +5,36 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import MobileLayout from './layouts/MobileLayout.jsx';
 
-// Public & Auth Pages
+// Pages
 import Login from './pages/Login.jsx';
 import ChangePassword from './pages/ChangePassword.jsx';
-
-// Protected Pages
 import Settings from './pages/Settings.jsx';
-
-// Role-Based Dashboards
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
-import { ProcurementDashboard } from './pages/procurementofficer/ProcurementDashboard.jsx';
-import { PurchaseOrderApproval } from './pages/manager/PurchaseOrderApproval.jsx';
+import ProcurementDashboard from "./pages/procurementofficer/ProcurementDashboard.jsx";
 
-// Mobile Components
-import MobileSetup from './mobile/MobileSetup.jsx';
-import MobileHome from './mobile/MobileHome.jsx';
-import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
-
-// Warehouse/Inventory Pages
-import WarehousePortal from "./pages/staff/WarehousePortal.jsx";
-import InventoryView from "./pages/staff/InventoryView.jsx";
+// Warehouse/Inventory
 import ProductList from "./pages/shared/ProductList.jsx";
-import { PurchaseOrders } from "./pages/procurementofficer/PurchaseOrders.jsx";
-import { ReturnsInspection } from "./pages/shared/ReturnsInspection.jsx";
+import PurchaseOrders from "./pages/procurementofficer/PurchaseOrders.jsx";
 import SupplierList from "./pages/procurementofficer/SupplierList.jsx";
 import SupplierProductView from "./pages/procurementofficer/SupplierProductView.jsx";
 import WarehouseList from "./pages/shared/WarehouseList.jsx";
+import ReturnRequest from "./pages/staff/ReturnRequest.jsx";
+import ProcessOrder from "./pages/staff/ProcessOrder.jsx";
+import Receiving from "./pages/staff/Receiving.jsx";
 import WarehouseInventory from "./pages/shared/WarehouseInventory.jsx";
+import WarehouseTransactions from "./pages/shared/WarehouseTransactions.jsx";
+
+// Returns & PO Shared
+import PurchaseOrderView from "./pages/shared/PurchaseOrder.jsx";
+import ReturnsInspection from "./pages/shared/ReturnsInspection.jsx";
+import ReturnRequestOversight from "./pages/manager/ReturnRequestOversight.jsx";
+
+// Mobile
+import MobileSetup from './mobile/MobileSetup.jsx';
+import MobileHome from './mobile/MobileHome.jsx';
+import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
+import PurchaseOrderApproval from "./pages/manager/PurchaseOrderApproval.jsx";
 
 const App = () => {
     const token = localStorage.getItem('token');
@@ -43,7 +45,6 @@ const App = () => {
     const getRedirectPath = () => {
         if (!isAuthenticated) return "/login";
         if (isMobileDevice) return "/mobile/home";
-
         switch (userRole) {
             case 'ADMIN': return "/admin/dashboard";
             case 'MANAGER': return "/manager/dashboard";
@@ -54,31 +55,45 @@ const App = () => {
 
     return (
         <Routes>
-            {/* 1. PUBLIC ROUTES */}
             <Route path="/login" element={<Login />} />
             <Route path="/change-password" element={<ChangePassword />} />
 
-            {/* 2. DASHBOARD ROUTES */}
             <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<Navigate to={getRedirectPath()} replace />} />
 
+                {/* Shared */}
                 <Route path="settings" element={<Settings />} />
+                <Route path="warehouselist" element={<WarehouseList />} />
+                <Route path="productlist" element={<ProductList />} />
+                <Route path="purchase-order/:poId" element={<PurchaseOrderView />} />
+
+                {/* Dashboards */}
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
                 <Route path="manager/warehouselist" element={<WarehouseList />} />
-                <Route path="manager/po-approvals" element={<PurchaseOrderApproval />} />
                 <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
                 <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
+
+                {/* Procurement */}
                 <Route path="procurement/suppliers" element={<SupplierList />} />
                 <Route path="procurement/suppliers/:supplierId/products" element={<SupplierProductView />} />
                 <Route path="procurement/purchaseorders" element={<PurchaseOrders />} />
-                <Route path="warehouse/dashboard" element={<WarehousePortal />} />
-                <Route path="warehouse/inventory" element={<InventoryView />} />
-                <Route path="productlist" element={<ProductList />} />
-                <Route path="returnsinspection" element={<ReturnsInspection />} />
+
+                {/* Warehouse */}
+                <Route path="warehouse/returnorder" element={<ReturnRequest />} />
+                <Route path="warehouse/receiving" element={<Receiving />} />
+                <Route path="receiving/process/:poId" element={<ProcessOrder />} />
+                <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="warehouses/:warehouseId/transactions" element={<WarehouseTransactions />} />
+
+                {/* Manager Oversight */}
+                <Route path="manager/returns-oversight" element={<ReturnRequestOversight />} />
+                <Route path="manager/returns-inspection/:returnId" element={<ReturnsInspection />} />
+                <Route path="manager/returns-oversight" element={<ReturnRequestOversight />} />
+                <Route path="manager/po-approval" element={<PurchaseOrderApproval />} /> {/* ADD THIS */}
+                <Route path="manager/returns-inspection/:returnId" element={<ReturnsInspection />} />
             </Route>
 
-            {/* 3. MOBILE ROUTES */}
             <Route path="/mobile" element={<MobileLayout />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<MobileHome />} />
@@ -86,7 +101,6 @@ const App = () => {
                 <Route path="qr-login" element={<MobileQRLogin />} />
             </Route>
 
-            {/* 4. CATCH-ALL */}
             <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
         </Routes>
     );

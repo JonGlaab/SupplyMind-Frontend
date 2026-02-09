@@ -20,24 +20,31 @@ const WarehouseInventory = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const warehouseName = location.state?.name || "Warehouse";
 
-    useEffect(() => {
-        fetchInventory();
-    }, [warehouseId]);
+    const [page, setPage] = useState(0); // Spring Boot starts pages at 0
+    const [totalPages, setTotalPages] = useState(0);
 
     const fetchInventory = async () => {
         try {
-            // Matches your controller: GET /api/core/inventory?warehouseId=X
+            setLoading(true);
             const res = await api.get(`/api/core/inventory`, {
-                params: { warehouseId }
+                params: {
+                    warehouseId,
+                    page: page,
+                    size: 10
+                }
             });
-            // Page object returns .content
+
             setInventory(res.data.content || []);
+            setTotalPages(res.data.totalPages || 0);
             setLoading(false);
         } catch (err) {
-            console.error("Failed to load inventory", err);
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchInventory();
+    }, [warehouseId, page]);
 
     return (
         <div className="p-6 space-y-6">
@@ -125,6 +132,23 @@ const WarehouseInventory = () => {
                         )}
                         </tbody>
                     </table>
+                    <div className="flex justify-between items-center p-4 border-t">
+                        <Button
+                            disabled={page === 0}
+                            onClick={() => setPage(prev => prev - 1)}
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-slate-500">
+        Page {page + 1} of {totalPages}
+    </span>
+                        <Button
+                            disabled={page >= totalPages - 1}
+                            onClick={() => setPage(prev => prev + 1)}
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>

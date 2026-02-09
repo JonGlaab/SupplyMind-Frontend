@@ -18,6 +18,8 @@ const WarehouseList = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    const userRole = localStorage.getItem('userRole');
+
     // Updated to match your Entity field names
     const [formData, setFormData] = useState({
         locationName: '',
@@ -107,10 +109,13 @@ const WarehouseList = () => {
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold tracking-tight">Warehouse Network</h1>
-                <Button className="bg-blue-600" onClick={() => setIsAdding(true)}>
-                    <Plus size={18} className="mr-2" /> New Warehouse
-                </Button>
+                {userRole === 'MANAGER' && (
+                    <Button className="bg-blue-600" onClick={() => setIsAdding(true)}>
+                        <Plus size={18} className="mr-2" /> New Warehouse
+                    </Button>
+                )}
             </div>
+
 
             <Card className="shadow-md">
                 <CardHeader>
