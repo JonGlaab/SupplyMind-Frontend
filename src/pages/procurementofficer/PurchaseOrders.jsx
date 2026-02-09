@@ -107,3 +107,5 @@ export function PurchaseOrders() {
         </>
     );
 }
+
+export default PurchaseOrders;
