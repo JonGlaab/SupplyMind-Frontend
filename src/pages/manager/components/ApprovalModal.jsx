@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
-import { Loader2, Check, X, Save } from 'lucide-react';
+import { Loader2, Check, X, Save, ShoppingCart, User, Building, Hash } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
+import { Badge } from '../../../components/ui/badge';
 import api from '../../../services/api';
 
 const PO_STATUSES = [
-    "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED",
+    "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED", 
     "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
 ];
 
@@ -68,51 +71,107 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-[80vh]">
+            <DialogContent className="max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>Purchase Order Details</DialogTitle>
                     <DialogDescription>
-                        Review and manage PO #{po?.poId} for {po?.supplierName}
+                        Review and manage PO #{po?.poId}
                     </DialogDescription>
                 </DialogHeader>
 
                 {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <Loader2 className="animate-spin" />
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 gap-6 h-full">
-                        {/* Left Panel: PO Details */}
-                        <div className="space-y-4">
-                            <h3 className="font-bold">PO Details</h3>
-                            <p><strong>Supplier:</strong> {po?.supplierName}</p>
-                            <p><strong>Warehouse:</strong> {po?.warehouseName}</p>
-                            <p><strong>Total:</strong> ${po?.totalAmount?.toLocaleString()}</p>
-                            <ul>
-                                {po?.items.map(item => (
-                                    <li key={item.poItemId}>{item.productName} - Qty: {item.orderedQty}</li>
-                                ))}
-                            </ul>
+                    <div className="py-20 flex justify-center"><Loader2 className="animate-spin" /></div>
+                ) : po && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+                        {/* Left Column: PO Info */}
+                        <div className="md:col-span-1 space-y-6">
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">Details</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-2">
+                                    <div className="flex items-center"><Hash className="h-4 w-4 mr-2 text-gray-400" /> PO Number: <span className="font-semibold ml-auto">{po.poId}</span></div>
+                                    <div className="flex items-center"><User className="h-4 w-4 mr-2 text-gray-400" /> Buyer: <span className="font-semibold ml-auto">{po.buyerEmail}</span></div>
+                                    <div className="flex items-center"><Badge>{po.status}</Badge></div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">Supplier</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-1">
+                                    <p className="font-semibold">{po.supplierName}</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">Ship To</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-1">
+                                    <p className="font-semibold">{po.warehouseName}</p>
+                                </CardContent>
+                            </Card>
                         </div>
 
-                        {/* Right Panel: Manual Status Update */}
-                        <div className="bg-gray-100 p-4 rounded-md">
-                            <h3 className="font-bold">Manual Status Update</h3>
-                            <div className="flex items-center gap-2 mt-4">
-                                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {PO_STATUSES.map(status => (
-                                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Button onClick={handleStatusUpdate} size="sm">
-                                    <Save className="mr-2 h-4 w-4" /> Save
-                                </Button>
-                            </div>
+                        {/* Right Column: Items and Status Update */}
+                        <div className="md:col-span-2 space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Items</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="relative max-h-72 overflow-y-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Product</TableHead>
+                                                    <TableHead>SKU</TableHead>
+                                                    <TableHead>Quantity</TableHead>
+                                                    <TableHead className="text-right">Unit Cost</TableHead>
+                                                    <TableHead className="text-right">Total</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {po.items.map(item => (
+                                                    <TableRow key={item.poItemId}>
+                                                        <TableCell>{item.productName}</TableCell>
+                                                        <TableCell>{item.sku}</TableCell>
+                                                        <TableCell>{item.orderedQty}</TableCell>
+                                                        <TableCell className="text-right">${item.unitCost?.toFixed(2)}</TableCell>
+                                                        <TableCell className="text-right">${(item.orderedQty * item.unitCost).toFixed(2)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                    <div className="text-right font-bold text-lg mt-4">
+                                        Grand Total: ${po.totalAmount?.toLocaleString()}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Manual Status Update</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center gap-2">
+                                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {PO_STATUSES.map(status => (
+                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button onClick={handleStatusUpdate}>
+                                            <Save className="mr-2 h-4 w-4" /> Save Status
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 )}
