@@ -186,6 +186,14 @@ const DashboardLayout = () => {
                         <Badge variant="outline" className="hidden sm:flex border-slate-200 text-slate-500 font-medium">
                             {userRole?.replace('_', ' ')}
                         </Badge>
+                        <button
+                            onClick={() => navigate('/inbox')}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative"
+                            title="Inbox"
+                        >
+                            <MessageCircle size={20} />
+                            {/* Optional: Add unread count badge here later */}
+                        </button>
 
                         <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative">
                             <Bell size={20} />
