@@ -3,38 +3,58 @@
   overflow: hidden;
 }
 
-/* Two-image background */
+/* Full-page background using BOTH images */
 .login-background {
   position: absolute;
   inset: 0;
 
+  /* 1) base gradient  2) image A  3) image B */
   background-image:
+    radial-gradient(1200px 700px at 20% 30%, rgba(37,99,235,0.18), transparent 60%),
     url("/images/supplychain-bg-1.png"),
     url("/images/supplychain-bg-2.png");
 
+  /* Put one on left, one on right */
   background-position:
-    left bottom,
-    right top;
+    center,
+    left center,
+    right center;
 
   background-repeat:
     no-repeat,
+    no-repeat,
     no-repeat;
 
+  /* Make them BIG so they fill the whole page */
   background-size:
-    520px auto,
-    520px auto;
+    cover,
+    1100px auto,
+    1100px auto;
 
-  opacity: 0.18; /* adjust 0.10–0.25 */
+  /* Make the illustrations visible everywhere */
+  opacity: 0.22;
+
+  /* Optional: softer look */
+  filter: saturate(1.05) contrast(1.03);
+
   pointer-events: none;
   z-index: 0;
 }
 
-/* Responsive: smaller images on mobile */
+/* Ensure your cards stay above background */
+.login-page > .relative,
+.login-page .grid {
+  position: relative;
+  z-index: 10;
+}
+
+/* Mobile: scale images down but still cover */
 @media (max-width: 768px) {
   .login-background {
     background-size:
-      320px auto,
-      320px auto;
-    opacity: 0.12;
+      cover,
+      700px auto,
+      700px auto;
+    opacity: 0.18;
   }
 }
