@@ -1,0 +1,80 @@
+.login-page {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Clean enterprise background with BOTH images */
+.login-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  /* Layer order:
+     1) soft white wash overlay (keeps it clean)
+     2) subtle gradient glow
+     3) image 1 (left)
+     4) image 2 (right)
+  */
+  background-image:
+    linear-gradient(180deg, rgba(248,250,252,0.92) 0%, rgba(248,250,252,0.92) 100%),
+    radial-gradient(900px 600px at 20% 30%, rgba(37,99,235,0.18), transparent 60%),
+    url("/images/supplychain-bg-1.png"),
+    url("/images/supplychain-bg-2.png");
+
+  background-repeat:
+    no-repeat,
+    no-repeat,
+    no-repeat,
+    no-repeat;
+
+  /* Put them in corners so they don't clash with cards */
+  background-position:
+    center,
+    center,
+    left bottom,
+    right top;
+
+  /* Make them medium-sized, not huge */
+  background-size:
+    cover,
+    cover,
+    520px auto,
+    520px auto;
+
+  /* Make them subtle */
+  opacity: 1;
+}
+
+/* Make illustrations lighter + cleaner */
+.login-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(248,250,252,0.55);
+ /* extra wash */
+}
+
+/* Ensure your cards/content are above background */
+.login-page > .relative,
+.login-page .grid {
+  position: relative;
+  z-index: 10;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-background {
+    background-position:
+      center,
+      center,
+      left bottom,
+      right top;
+
+    background-size:
+      cover,
+      cover,
+      320px auto,
+      320px auto;
+  }
+}
