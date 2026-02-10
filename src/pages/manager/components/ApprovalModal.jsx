@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
-import { Loader2, Check, X, Save, ShoppingCart, User, Building, Hash, Send, FileText } from 'lucide-react';
+import { Loader2, Check, X, Save, ShoppingCart, User, Building, Hash, Send, FileText, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
@@ -12,7 +12,7 @@ import { Label } from '../../../components/ui/label';
 import api from '../../../services/api';
 
 const PO_STATUSES = [
-    "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED", 
+    "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED",
     "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
 ];
 
@@ -20,14 +20,14 @@ const PO_STATUSES = [
 const htmlToPlainText = (html) => {
     if (!html) return '';
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    // Replace <p> and <br> with newlines for better readability in textarea
     doc.querySelectorAll('p, br').forEach(el => el.appendChild(document.createTextNode('\n')));
     return doc.body.textContent || '';
 };
 
-export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRejected }) {
+export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
     const [po, setPo] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
     const [isEmailView, setIsEmailView] = useState(false);
     const [emailDraft, setEmailDraft] = useState({ toEmail: '', subject: '', body: '' });
@@ -37,17 +37,20 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
             fetchPoDetails();
         } else {
             setIsEmailView(false);
+            setError(''); // Reset error on close
         }
     }, [isOpen, poId]);
 
     const fetchPoDetails = async () => {
         setLoading(true);
+        setError('');
         try {
             const res = await api.get(`/api/core/purchase-orders/${poId}`);
             setPo(res.data);
             setSelectedStatus(res.data.status);
         } catch (err) {
             console.error("Failed to fetch PO details", err);
+            setError("Failed to load purchase order details.");
         } finally {
             setLoading(false);
         }
@@ -55,27 +58,30 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
 
     const handleApprove = async () => {
         setLoading(true);
+        setError('');
         try {
-            const updatedPo = await api.post(`/api/core/purchase-orders/${poId}/approve`);
-            setPo(updatedPo.data);
-            onPoApproved();
-            prepareAndShowEmailView();
+            await api.post(`/api/core/purchase-orders/${poId}/approve`);
+            onPoUpdated(); // Refresh the parent list
+            fetchPoDetails(); // Re-fetch details for this modal to get the new state
         } catch (err) {
             console.error("Failed to approve PO", err);
+            setError(err.response?.data?.message || "An error occurred during approval.");
+        } finally {
             setLoading(false);
         }
     };
 
     const prepareAndShowEmailView = async () => {
         setLoading(true);
+        setError('');
         try {
             const emailRes = await api.get(`/api/core/purchase-orders/${poId}/email-draft`);
-            // Convert HTML body to plain text for editing
             const plainTextBody = htmlToPlainText(emailRes.data.body);
             setEmailDraft({ ...emailRes.data, body: plainTextBody });
             setIsEmailView(true);
         } catch (err) {
             console.error("Failed to prepare email view", err);
+            setError("Failed to load email draft.");
         } finally {
             setLoading(false);
         }
@@ -84,15 +90,15 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     const handleSendEmail = async () => {
         setLoading(true);
         try {
-            // Before sending, convert the plain text back to a simple HTML format
             const htmlBody = emailDraft.body.replace(/\n/g, '<br>');
             const emailToSend = { ...emailDraft, body: `<div>${htmlBody}</div>` };
             
             await api.post(`/api/core/purchase-orders/${poId}/send`, emailToSend);
-            onPoApproved();
+            onPoUpdated();
             onOpenChange(false);
         } catch (err) {
             console.error("Failed to send email", err);
+            setError("Failed to send email.");
         } finally {
             setLoading(false);
         }
@@ -108,7 +114,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
         if (window.confirm("Are you sure you want to reject this purchase order? This will cancel it.")) {
             try {
                 await api.post(`/api/core/purchase-orders/${poId}/cancel`);
-                onPoRejected();
+                onPoUpdated();
                 onOpenChange(false);
             } catch (err) {
                 console.error("Failed to reject PO", err);
@@ -119,7 +125,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     const handleStatusUpdate = async () => {
         try {
             await api.post(`/api/core/purchase-orders/${poId}/status`, { status: selectedStatus });
-            onPoApproved();
+            onPoUpdated();
             fetchPoDetails();
         } catch (err) {
             console.error("Failed to update status", err);
@@ -128,6 +134,12 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
 
     const renderDetailsView = () => (
         <>
+            {error && (
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                    <p className="font-bold">Error</p>
+                    <p>{error}</p>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
                 <div className="md:col-span-1 space-y-6">
                     <Card><CardHeader className="pb-2"><CardTitle className="text-base">Details</CardTitle></CardHeader>
@@ -163,10 +175,11 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                         <CardContent>
                             <div className="flex items-center gap-2">
                                 <Select value={selectedStatus} onValueChange={setSelectedStatus}><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
-                                    <SelectContent>{PO_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                                    <SelectContent>{PO_STATUSES.map(status => (<SelectItem key={status} value={status} disabled={status === 'APPROVED'}>{status}</SelectItem>))}</SelectContent>
                                 </Select>
                                 <Button onClick={handleStatusUpdate}><Save className="mr-2 h-4 w-4" /> Save Status</Button>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-2">Use the "Approve" button for the official approval workflow.</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -176,8 +189,15 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                     <Button variant="outline" onClick={handleViewPdf} disabled={!po?.pdfUrl}><FileText className="mr-2 h-4 w-4" /> View PDF</Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="destructive" onClick={handleReject} disabled={po?.status !== 'PENDING_APPROVAL'}><X className="mr-2 h-4 w-4" /> Reject</Button>
-                    <Button onClick={handleApprove} disabled={po?.status !== 'PENDING_APPROVAL'}><Check className="mr-2 h-4 w-4" /> Approve & Email</Button>
+                    {po?.status === 'PENDING_APPROVAL' && (
+                        <>
+                            <Button variant="destructive" onClick={handleReject}><X className="mr-2 h-4 w-4" /> Reject</Button>
+                            <Button onClick={handleApprove}><Check className="mr-2 h-4 w-4" /> Approve</Button>
+                        </>
+                    )}
+                    {po?.status === 'APPROVED' && (
+                        <Button onClick={prepareAndShowEmailView}><Send className="mr-2 h-4 w-4" /> Email to Supplier</Button>
+                    )}
                 </div>
             </DialogFooter>
         </>
@@ -186,7 +206,6 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     const renderEmailView = () => (
         <>
             <div className="grid grid-cols-2 gap-6 h-full py-4">
-                {/* Left Panel: Email Editor */}
                 <div className="space-y-4 flex flex-col">
                     <div className="space-y-1">
                         <Label htmlFor="toEmail">To:</Label>
@@ -207,8 +226,6 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                         />
                     </div>
                 </div>
-
-                {/* Right Panel: PDF Preview */}
                 <div>
                     <iframe src={po.pdfUrl} className="w-full h-full border rounded-md" title="Signed PO Preview" />
                 </div>
@@ -235,7 +252,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                     </DialogDescription>
                 </DialogHeader>
                 <div className="flex-grow overflow-y-auto">
-                    {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (isEmailView ? renderEmailView() : renderDetailsView())}
+                    {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (po ? (isEmailView ? renderEmailView() : renderDetailsView()) : <p>No purchase order data.</p>)}
                 </div>
             </DialogContent>
         </Dialog>

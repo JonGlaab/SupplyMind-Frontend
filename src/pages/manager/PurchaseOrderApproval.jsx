@@ -41,8 +41,8 @@ export function PurchaseOrderApproval() {
         setSelectedPoId(null);
     };
 
-    const handlePoChange = () => {
-        fetchOrders();
+    const handlePoUpdated = () => {
+        fetchOrders(); // Re-fetch all orders to get the latest statuses
     };
 
     const pendingOrders = allOrders.filter(po => po.status === 'PENDING_APPROVAL');
@@ -96,8 +96,7 @@ export function PurchaseOrderApproval() {
                 poId={selectedPoId}
                 isOpen={isModalOpen}
                 onOpenChange={handleModalClose}
-                onPoApproved={handlePoChange}
-                onPoRejected={handlePoChange}
+                onPoUpdated={handlePoUpdated} // Pass the refresh function
             />
         </>
     );

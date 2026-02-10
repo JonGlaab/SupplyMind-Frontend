@@ -12,6 +12,7 @@ import Settings from './pages/Settings.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
 import ProcurementDashboard from "./pages/procurementofficer/ProcurementDashboard.jsx";
+import InboxPage from './pages/shared/InboxPage.jsx'; // Import InboxPage
 
 // Warehouse/Inventory
 import ProductList from "./pages/shared/ProductList.jsx";
@@ -63,6 +64,7 @@ const App = () => {
 
                 {/* Shared */}
                 <Route path="settings" element={<Settings />} />
+                <Route path="inbox" element={<InboxPage />} /> {/* Add Inbox Route */}
                 <Route path="warehouselist" element={<WarehouseList />} />
                 <Route path="productlist" element={<ProductList />} />
                 <Route path="purchase-order/:poId" element={<PurchaseOrderView />} />
