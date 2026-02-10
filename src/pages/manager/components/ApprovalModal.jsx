@@ -8,19 +8,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
 import { Textarea } from '../../../components/ui/textarea';
+import { Label } from '../../../components/ui/label';
 import api from '../../../services/api';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 const PO_STATUSES = [
     "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED", 
     "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
 ];
 
-const isStatusPostApproval = (status) => {
-    const approvedIndex = PO_STATUSES.indexOf("APPROVED");
-    const statusIndex = PO_STATUSES.indexOf(status);
-    return statusIndex >= approvedIndex;
+// Helper function to convert basic HTML to plain text for the textarea
+const htmlToPlainText = (html) => {
+    if (!html) return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    // Replace <p> and <br> with newlines for better readability in textarea
+    doc.querySelectorAll('p, br').forEach(el => el.appendChild(document.createTextNode('\n')));
+    return doc.body.textContent || '';
 };
 
 export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRejected }) {
@@ -28,8 +30,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     const [loading, setLoading] = useState(true);
     const [selectedStatus, setSelectedStatus] = useState('');
     const [isEmailView, setIsEmailView] = useState(false);
-    const [emailDraft, setEmailDraft] = useState({ subject: '', body: '' });
-    const [pdfUrl, setPdfUrl] = useState('');
+    const [emailDraft, setEmailDraft] = useState({ toEmail: '', subject: '', body: '' });
 
     useEffect(() => {
         if (isOpen && poId) {
@@ -52,50 +53,26 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
         }
     };
 
-    const generatePdfBlob = () => {
-        const doc = new jsPDF();
-        doc.text(`Purchase Order #${po.poId}`, 14, 22);
-        doc.autoTable({
-            startY: 30,
-            head: [['Product', 'SKU', 'Qty', 'Unit Cost', 'Total']],
-            body: po.items.map(item => [
-                item.productName,
-                item.sku,
-                item.orderedQty,
-                `$${item.unitCost.toFixed(2)}`,
-                `$${(item.orderedQty * item.unitCost).toFixed(2)}`
-            ]),
-        });
-        doc.text(`Grand Total: $${po.totalAmount.toLocaleString()}`, 14, doc.autoTable.previous.finalY + 10);
-        return doc.output('blob');
-    };
-
     const handleApprove = async () => {
+        setLoading(true);
         try {
-            const approvalResponse = await api.post(`/api/core/purchase-orders/${poId}/approve`);
-            const { presignedUrl, po: updatedPo } = approvalResponse.data;
-
-            const pdfBlob = generatePdfBlob();
-            await api.put(presignedUrl, pdfBlob, {
-                headers: { 'Content-Type': 'application/pdf' }
-            });
-
-            await api.patch(`/api/core/purchase-orders/${poId}`, { pdfUrl: updatedPo.pdfUrl });
-
+            const updatedPo = await api.post(`/api/core/purchase-orders/${poId}/approve`);
+            setPo(updatedPo.data);
             onPoApproved();
-            prepareAndShowEmailView(pdfBlob);
+            prepareAndShowEmailView();
         } catch (err) {
             console.error("Failed to approve PO", err);
+            setLoading(false);
         }
     };
 
-    const prepareAndShowEmailView = async (pdfBlob) => {
+    const prepareAndShowEmailView = async () => {
         setLoading(true);
         try {
             const emailRes = await api.get(`/api/core/purchase-orders/${poId}/email-draft`);
-            setEmailDraft(emailRes.data);
-            const url = URL.createObjectURL(pdfBlob);
-            setPdfUrl(url);
+            // Convert HTML body to plain text for editing
+            const plainTextBody = htmlToPlainText(emailRes.data.body);
+            setEmailDraft({ ...emailRes.data, body: plainTextBody });
             setIsEmailView(true);
         } catch (err) {
             console.error("Failed to prepare email view", err);
@@ -105,12 +82,19 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     };
 
     const handleSendEmail = async () => {
+        setLoading(true);
         try {
-            await api.post(`/api/core/purchase-orders/${poId}/send`, emailDraft);
+            // Before sending, convert the plain text back to a simple HTML format
+            const htmlBody = emailDraft.body.replace(/\n/g, '<br>');
+            const emailToSend = { ...emailDraft, body: `<div>${htmlBody}</div>` };
+            
+            await api.post(`/api/core/purchase-orders/${poId}/send`, emailToSend);
             onPoApproved();
             onOpenChange(false);
         } catch (err) {
             console.error("Failed to send email", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -193,7 +177,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
                 </div>
                 <div className="flex gap-2">
                     <Button variant="destructive" onClick={handleReject} disabled={po?.status !== 'PENDING_APPROVAL'}><X className="mr-2 h-4 w-4" /> Reject</Button>
-                    <Button onClick={handleApprove} disabled={po?.status !== 'PENDING_APPROVAL'}><Check className="mr-2 h-4 w-4" /> Approve</Button>
+                    <Button onClick={handleApprove} disabled={po?.status !== 'PENDING_APPROVAL'}><Check className="mr-2 h-4 w-4" /> Approve & Email</Button>
                 </div>
             </DialogFooter>
         </>
@@ -202,26 +186,57 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoApproved, onPoRe
     const renderEmailView = () => (
         <>
             <div className="grid grid-cols-2 gap-6 h-full py-4">
-                <div className="space-y-4"><Input value={emailDraft.subject} onChange={(e) => setEmailDraft(d => ({ ...d, subject: e.target.value }))} /><Textarea value={emailDraft.body} onChange={(e) => setEmailDraft(d => ({ ...d, body: e.target.value }))} className="h-full" /></div>
-                <div><iframe src={pdfUrl} className="w-full h-full border rounded-md" /></div>
+                {/* Left Panel: Email Editor */}
+                <div className="space-y-4 flex flex-col">
+                    <div className="space-y-1">
+                        <Label htmlFor="toEmail">To:</Label>
+                        <Input id="toEmail" placeholder="To" value={emailDraft.toEmail} onChange={(e) => setEmailDraft(d => ({ ...d, toEmail: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="subject">Subject:</Label>
+                        <Input id="subject" placeholder="Subject" value={emailDraft.subject} onChange={(e) => setEmailDraft(d => ({ ...d, subject: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1 flex-grow flex flex-col">
+                        <Label htmlFor="body">Body:</Label>
+                        <Textarea
+                            id="body"
+                            placeholder="Email body..."
+                            value={emailDraft.body}
+                            onChange={(e) => setEmailDraft(d => ({ ...d, body: e.target.value }))}
+                            className="flex-grow"
+                        />
+                    </div>
+                </div>
+
+                {/* Right Panel: PDF Preview */}
+                <div>
+                    <iframe src={po.pdfUrl} className="w-full h-full border rounded-md" title="Signed PO Preview" />
+                </div>
             </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEmailView(false)}>Back</Button>
-                <Button onClick={handleSendEmail}><Send className="mr-2 h-4 w-4" /> Send Email</Button>
+            <DialogFooter className="sm:justify-between">
+                <div>
+                    <Button variant="outline" onClick={handleViewPdf} disabled={!po?.pdfUrl}><FileText className="mr-2 h-4 w-4" /> View Signed PDF</Button>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setIsEmailView(false)}>Back to Details</Button>
+                    <Button onClick={handleSendEmail} disabled={loading}><Send className="mr-2 h-4 w-4" /> {loading ? 'Sending...' : 'Send Email'}</Button>
+                </div>
             </DialogFooter>
         </>
     );
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl h-[90vh]">
+            <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>{isEmailView ? "Send Purchase Order" : "Purchase Order Details"}</DialogTitle>
                     <DialogDescription>
                         {isEmailView ? `Sending PO #${po?.poId} to ${po?.supplierName}` : `Review and manage PO #${po?.poId}`}
                     </DialogDescription>
                 </DialogHeader>
-                {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (isEmailView ? renderEmailView() : renderDetailsView())}
+                <div className="flex-grow overflow-y-auto">
+                    {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (isEmailView ? renderEmailView() : renderDetailsView())}
+                </div>
             </DialogContent>
         </Dialog>
     );
