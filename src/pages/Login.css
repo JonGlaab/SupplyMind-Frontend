@@ -1,0 +1,40 @@
+.login-page {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Two-image background */
+.login-background {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    url("/images/supplychain-bg-1.png"),
+    url("/images/supplychain-bg-2.png");
+
+  background-position:
+    left bottom,
+    right top;
+
+  background-repeat:
+    no-repeat,
+    no-repeat;
+
+  background-size:
+    520px auto,
+    520px auto;
+
+  opacity: 0.18; /* adjust 0.10–0.25 */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Responsive: smaller images on mobile */
+@media (max-width: 768px) {
+  .login-background {
+    background-size:
+      320px auto,
+      320px auto;
+    opacity: 0.12;
+  }
+}
