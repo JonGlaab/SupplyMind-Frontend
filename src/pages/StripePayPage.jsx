@@ -15,7 +15,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-export default function PaymentsPage() {
+export function PaymentsPage() {
   const paymentId = 123; // get this from your backend / payment record
   const poId = 45;
 

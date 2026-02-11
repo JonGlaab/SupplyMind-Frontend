@@ -48,17 +48,14 @@
 }
 
 .login-logo {
-
-    height: 130px;      /* 🔥 Bigger logo */
+    height: clamp(140px, 18vh, 200px);
     width: auto;
-
     object-fit: contain;
-
-    background: none;   /* no background */
+    background: none;
     box-shadow: none;
     border: none;
-
 }
+
 
 
 /* GRID */
