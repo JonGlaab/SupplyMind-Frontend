@@ -117,15 +117,16 @@ const Login = () => {
 
 
             {/* LOGO BIG CENTER */}
-            <div className="relative z-10 mb-10 flex flex-col items-center">
+            <div className="login-logo-wrapper relative z-10">
 
-                <img
-                    src="/images/supplymind-logo.png"
-                    alt="SupplyMind Logo"
-                    className="h-24 md:h-28 object-contain"
-                />
+             <img
+                 src="/images/supplymind-logo.png"
+                 alt="SupplyMind Logo"
+                 className="login-logo"
+            />
 
             </div>
+
 
 
             {/* LOGIN GRID */}

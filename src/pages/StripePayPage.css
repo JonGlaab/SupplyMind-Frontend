@@ -1,18 +1,23 @@
+/* PAGE CONTAINER */
 .pay-page {
   position: relative;
   overflow: hidden;
-  background: #050b18;
+  background: #0f172a; /* brighter base */
 }
 
+/* BACKGROUND IMAGE LAYER */
 .pay-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 
-  /* ✅ Use your big background image */
   background-image:
-    linear-gradient(180deg, rgba(4, 10, 24, 0.55), rgba(4, 10, 24, 0.65)),
+    linear-gradient(
+      180deg,
+      rgba(15, 23, 42, 0.25),
+      rgba(15, 23, 42, 0.35)
+    ),
     url("/images/login-bg.png");
 
   background-size: cover, cover;
@@ -20,64 +25,73 @@
   background-repeat: no-repeat, no-repeat;
 }
 
+/* MAIN CONTENT SHELL */
 .pay-shell {
   position: relative;
   z-index: 10;
   min-height: 100vh;
-  padding: 28px 18px 40px;
+  padding: 140px 18px 40px; /* space for centered logo */
   max-width: 1100px;
   margin: 0 auto;
 }
 
+/* HEADER */
 .pay-header {
+  position: relative;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 18px;
 }
 
-.brand {
+.pay-back-btn {
+  position: relative;
+  z-index: 20;
+}
+
+/* LOGO WRAPPER */
+.pay-logo-wrapper {
+  position: absolute;
+  left: 50%;
+  top: -95px;
+  transform: translateX(-50%);
+
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 12px;
+
+  animation: logoFadeSlide 0.8s ease-out;
 }
 
-.brand-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #e5e7eb;
-  background: rgba(59, 130, 246, 0.16);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+/* LOGO IMAGE */
+.pay-logo {
+  height: 140px;
+  width: auto;
+  object-fit: contain;
+  background: none;
+  box-shadow: none;
+  border: none;
+
+  animation: logoFloat 4s ease-in-out infinite;
 }
 
-.brand-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #e5e7eb;
-  line-height: 1.1;
+@media (min-width: 900px) {
+  .pay-logo {
+    height: 160px;
+  }
 }
 
-.brand-sub {
-  font-size: 13px;
-  color: rgba(226, 232, 240, 0.7);
-  margin-top: 2px;
-}
-
+/* ERROR */
 .pay-error {
   margin: 12px 0 18px;
   padding: 12px 14px;
   border-radius: 14px;
   background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   color: rgba(254, 202, 202, 0.95);
 }
 
+/* GRID */
 .pay-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -90,62 +104,41 @@
   }
 }
 
+/* CARDS */
 .pay-card {
   border-radius: 20px !important;
 }
 
 .pay-card--glass {
-  background: rgba(15, 23, 42, 0.55) !important;
-  border: 1px solid rgba(148, 163, 184, 0.18) !important;
-  backdrop-filter: blur(14px);
+  background: rgba(30, 41, 59, 0.75) !important;
+  border: 1px solid rgba(148, 163, 184, 0.28) !important;
+  backdrop-filter: blur(16px);
 }
 
 .pay-card--dark {
-  background: rgba(2, 6, 23, 0.72) !important;
-  border: 1px solid rgba(51, 65, 85, 0.5) !important;
-  backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  backdrop-filter: blur(16px);
 }
 
+/* ROWS */
 .pay-row {
   display: flex;
   justify-content: space-between;
   gap: 14px;
 }
 
-.pay-row--big .pay-value {
-  font-size: 26px;
-  font-weight: 900;
-  color: #ffffff;
-}
-
 .pay-label {
-  color: rgba(226, 232, 240, 0.75);
+  color: rgba(226, 232, 240, 0.85);
 }
 
 .pay-value {
-  color: rgba(226, 232, 240, 0.95);
+  color: rgba(226, 232, 240, 0.98);
   font-weight: 600;
   text-align: right;
 }
 
-.pay-currency {
-  font-size: 13px;
-  font-weight: 700;
-  opacity: 0.8;
-  margin-left: 6px;
-}
-
-.pay-divider {
-  height: 1px;
-  background: rgba(148, 163, 184, 0.18);
-  margin: 14px 0;
-}
-
-.pay-status {
-  color: #fde68a;
-  font-weight: 700;
-}
-
+/* NOTE */
 .pay-note {
   margin-top: 14px;
   display: flex;
@@ -153,8 +146,32 @@
   align-items: center;
   padding: 12px 14px;
   border-radius: 16px;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  color: rgba(226, 232, 240, 0.92);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: rgba(226, 232, 240, 0.95);
   font-size: 13px;
+}
+
+/* LOGO ANIMATIONS */
+@keyframes logoFadeSlide {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes logoFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
