@@ -39,15 +39,27 @@
 /* LOGO */
 .login-logo-wrapper {
 
-    margin-bottom: 25px;
+    margin-bottom: 40px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
 }
 
 .login-logo {
 
-    height: 65px;
+    height: 130px;      /* 🔥 Bigger logo */
+    width: auto;
+
+    object-fit: contain;
+
+    background: none;   /* no background */
+    box-shadow: none;
+    border: none;
 
 }
+
 
 /* GRID */
 .login-grid {
