@@ -174,84 +174,86 @@ const Settings = () => {
                         </CardContent>
                     </Card>
 
-                    {/* 2. Digital Signature */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <PenTool className="h-5 w-5 text-blue-600" />
-                                Digital Signature
-                            </CardTitle>
-                            <CardDescription>
-                                Upload a copy of your signature for Purchase Orders and official documents.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/png, image/jpeg"
-                                onChange={handleFileSelect}
-                            />
+                    {/* 2. Digital Signature (Manager Only) */}
+                    {user?.role === 'MANAGER' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <PenTool className="h-5 w-5 text-blue-600" />
+                                    Digital Signature
+                                </CardTitle>
+                                <CardDescription>
+                                    Upload a copy of your signature for Purchase Orders and official documents.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/png, image/jpeg"
+                                    onChange={handleFileSelect}
+                                />
 
-                            <div className="flex flex-col sm:flex-row gap-6 items-start">
-                                {/* Preview Area */}
-                                <div className="w-full sm:w-48 h-32 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 relative overflow-hidden group">
-                                    {signatureUrl ? (
-                                        <img
-                                            src={signatureUrl}
-                                            alt="Signature"
-                                            className="w-full h-full object-contain p-2"
-                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                        />
-                                    ) : (
-                                        <div className="text-center p-4">
-                                            <ImageIcon className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                                            <span className="text-xs text-slate-400">No signature</span>
-                                        </div>
-                                    )}
+                                <div className="flex flex-col sm:flex-row gap-6 items-start">
+                                    {/* Preview Area */}
+                                    <div className="w-full sm:w-48 h-32 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center bg-slate-50 relative overflow-hidden group">
+                                        {signatureUrl ? (
+                                            <img
+                                                src={signatureUrl}
+                                                alt="Signature"
+                                                className="w-full h-full object-contain p-2"
+                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
+                                        ) : (
+                                            <div className="text-center p-4">
+                                                <ImageIcon className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                                                <span className="text-xs text-slate-400">No signature</span>
+                                            </div>
+                                        )}
 
-                                    {uploading && (
-                                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-                                            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex-1 space-y-4">
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <Button
-                                            onClick={() => fileInputRef.current.click()}
-                                            disabled={uploading}
-                                            variant="outline"
-                                            className="w-full sm:w-auto"
-                                        >
-                                            {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                                            {signatureUrl ? 'Change Signature' : 'Upload Signature'}
-                                        </Button>
-
-                                        {signatureUrl && (
-                                            <Button
-                                                onClick={handleRemoveSignature}
-                                                variant="ghost"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto"
-                                            >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Remove
-                                            </Button>
+                                        {uploading && (
+                                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                                                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="text-xs text-slate-500 space-y-1">
-                                        <p>• Saved in: <span className="font-mono text-slate-600">/{user ? `${user.firstName}_${user.lastName}` : 'user'}/{user?.id}/...</span></p>
-                                        <p>• Accepted formats: <span className="font-medium text-slate-700">PNG, JPG</span></p>
-                                        <p>• Max file size: <span className="font-medium text-slate-700">2MB</span></p>
+                                    {/* Actions */}
+                                    <div className="flex-1 space-y-4">
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <Button
+                                                onClick={() => fileInputRef.current.click()}
+                                                disabled={uploading}
+                                                variant="outline"
+                                                className="w-full sm:w-auto"
+                                            >
+                                                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                                {signatureUrl ? 'Change Signature' : 'Upload Signature'}
+                                            </Button>
+
+                                            {signatureUrl && (
+                                                <Button
+                                                    onClick={handleRemoveSignature}
+                                                    variant="ghost"
+                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto"
+                                                >
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Remove
+                                                </Button>
+                                            )}
+                                        </div>
+
+                                        <div className="text-xs text-slate-500 space-y-1">
+                                            <p>• Saved in: <span className="font-mono text-slate-600">/{user ? `${user.firstName}_${user.lastName}` : 'user'}/{user?.id}/...</span></p>
+                                            <p>• Accepted formats: <span className="font-medium text-slate-700">PNG, JPG</span></p>
+                                            <p>• Max file size: <span className="font-medium text-slate-700">2MB</span></p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* 3. 2FA QR Code */}
