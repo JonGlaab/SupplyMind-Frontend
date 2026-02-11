@@ -4,15 +4,34 @@ import api from '../services/api';
 import DesktopLoginQR from '../components/DesktopLoginQR.jsx';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
-import { Smartphone, Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle
+} from '../components/ui/card';
 
-// ✅ ADD THIS LINE
+import {
+    Smartphone,
+    Lock,
+    Mail,
+    Loader2,
+    AlertCircle
+} from 'lucide-react';
+
 import './Login.css';
 
 const Login = () => {
+
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ email: '', password: '' });
+
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
+
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -21,18 +40,20 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         setIsLoading(true);
         setError('');
 
         try {
+
             const res = await api.post('/api/auth/login', formData);
+
             const { token, role, needsPasswordChange } = res.data;
 
-            // CLEAN SLATE
             localStorage.clear();
 
-            // SAVE DATA
             localStorage.setItem('token', token);
             localStorage.setItem('userRole', role);
 
@@ -49,144 +70,215 @@ const Login = () => {
             }
 
             switch (role) {
+
                 case 'ADMIN':
                     navigate('/admin/dashboard');
                     break;
+
                 case 'MANAGER':
                     navigate('/manager/dashboard');
                     break;
+
                 case 'PROCUREMENT_OFFICER':
                     navigate('/procurement/dashboard');
                     break;
+
                 default:
                     navigate('/warehouse/dashboard');
             }
 
         } catch (err) {
+
             console.error(err);
+
             setError("Invalid credentials. Please try again.");
+
         } finally {
+
             setIsLoading(false);
+
         }
     };
 
     return (
-        <div className="min-h-screen w-full bg-muted/40 flex items-center justify-center p-4 login-page">
 
-            {/* ✅ Background layer */}
+        <div className="login-page">
+
+            {/* BACKGROUND */}
             <div className="login-background" />
 
-            {/* ✅ Your original content untouched */}
-            <div className="grid w-full max-w-5xl grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            {/* CONTENT */}
+            <div className="login-container">
 
-                {/* Email Login Card */}
-                <Card className="w-full h-full border-none shadow-xl bg-background/95 backdrop-blur">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-bold">Internal Portal</CardTitle>
-                        <CardDescription>Enter your credentials to access the system.</CardDescription>
-                    </CardHeader>
+                {/* LOGO */}
+                <div className="login-logo-wrapper">
 
-                    <CardContent>
-                        {error && (
-                            <div className="mb-4 p-3 rounded-md bg-destructive/15 text-destructive text-sm font-medium flex items-center gap-2">
-                                <AlertCircle size={16} /> {error}
-                            </div>
-                        )}
+                    <img
+                        src="/images/supplymind-logo.png"
+                        alt="SupplyMind"
+                        className="login-logo"
+                    />
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Email</label>
+                {/* CARDS */}
+                <div className="login-grid">
 
-                                <div className="relative">
-                                    <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    {/* EMAIL LOGIN CARD */}
+                    <Card className="login-card">
 
-                                    <Input
-                                        type="email"
-                                        placeholder="user@supplymind.com"
-                                        className="pl-9"
-                                        required
-                                        onChange={e =>
-                                            setFormData({
-                                                ...formData,
-                                                email: e.target.value
-                                            })
-                                        }
-                                    />
+                        <CardHeader>
+
+                            <CardTitle className="text-xl font-semibold">
+                                Internal Portal
+                            </CardTitle>
+
+                            <CardDescription>
+                                Enter your credentials to access the system.
+                            </CardDescription>
+
+                        </CardHeader>
+
+                        <CardContent>
+
+                            {error && (
+
+                                <div className="login-error">
+
+                                    <AlertCircle size={16} />
+                                    {error}
+
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Password</label>
+                            )}
 
-                                <div className="relative">
-                                    <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <form onSubmit={handleSubmit} className="space-y-4">
 
-                                    <Input
-                                        type="password"
-                                        placeholder="••••••••"
-                                        className="pl-9"
-                                        required
-                                        onChange={e =>
-                                            setFormData({
-                                                ...formData,
-                                                password: e.target.value
-                                            })
-                                        }
-                                    />
+                                {/* EMAIL */}
+                                <div>
+
+                                    <label className="text-sm font-medium">
+                                        Email
+                                    </label>
+
+                                    <div className="input-wrapper">
+
+                                        <Mail className="input-icon" />
+
+                                        <Input
+                                            type="email"
+                                            placeholder="user@supplymind.com"
+                                            className="pl-9"
+                                            required
+                                            onChange={e =>
+                                                setFormData({
+                                                    ...formData,
+                                                    email: e.target.value
+                                                })
+                                            }
+                                        />
+
+                                    </div>
+
                                 </div>
-                            </div>
 
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading && (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                )}
-                                Sign In
-                            </Button>
+                                {/* PASSWORD */}
+                                <div>
 
-                        </form>
-                    </CardContent>
+                                    <label className="text-sm font-medium">
+                                        Password
+                                    </label>
 
-                    <CardFooter className="flex justify-center border-t p-6">
-                        <p className="text-xs text-muted-foreground">
+                                    <div className="input-wrapper">
+
+                                        <Lock className="input-icon" />
+
+                                        <Input
+                                            type="password"
+                                            placeholder="••••••••"
+                                            className="pl-9"
+                                            required
+                                            onChange={e =>
+                                                setFormData({
+                                                    ...formData,
+                                                    password: e.target.value
+                                                })
+                                            }
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={isLoading}
+                                >
+
+                                    {isLoading &&
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    }
+
+                                    Sign In
+
+                                </Button>
+
+                            </form>
+
+                        </CardContent>
+
+                        <CardFooter className="login-footer">
+
                             Restricted Access. Unauthorized use prohibited.
-                        </p>
-                    </CardFooter>
 
-                </Card>
+                        </CardFooter>
 
-                {/* QR Login Card */}
-                <Card className="w-full h-full bg-slate-950 text-white border-slate-800 shadow-2xl flex flex-col justify-center items-center text-center p-8 relative overflow-hidden">
+                    </Card>
 
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none" />
+                    {/* QR CARD */}
+                    <Card className="qr-card">
 
-                    <div className="relative z-10 flex flex-col items-center max-w-sm">
+                        <div className="qr-content">
 
-                        <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 ring-1 ring-blue-500/20">
-                            <Smartphone className="h-6 w-6 text-blue-400" />
+                            <div className="qr-icon-wrapper">
+
+                                <Smartphone className="qr-icon" />
+
+                            </div>
+
+                            <h2 className="qr-title">
+
+                                Instant Unlock
+
+                            </h2>
+
+                            <p className="qr-subtitle">
+
+                                Already linked? Scan to login instantly.
+
+                            </p>
+
+                            <div className="qr-box">
+
+                                <DesktopLoginQR />
+
+                                <p className="secure-text">
+
+                                    Secure Handshake Active
+
+                                </p>
+
+                            </div>
+
                         </div>
 
-                        <h2 className="text-2xl font-bold mb-2">
-                            Instant Unlock
-                        </h2>
+                    </Card>
 
-                        <p className="text-slate-400 mb-8 text-sm">
-                            Already linked? Scan to login instantly.
-                        </p>
-
-                        <div className="bg-white p-4 rounded-xl shadow-inner shadow-black/10">
-                            <DesktopLoginQR />
-                        </div>
-
-                        <p className="mt-8 text-xs text-slate-500 uppercase tracking-widest font-medium">
-                            Secure Handshake Active
-                        </p>
-
-                    </div>
-
-                </Card>
+                </div>
 
             </div>
+
         </div>
     );
 };
