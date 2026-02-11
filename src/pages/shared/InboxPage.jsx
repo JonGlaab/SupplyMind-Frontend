@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import {
-    MessageCircle, Search, Building2, User,
-    X, Phone, Video, AlertCircle, Paperclip, Loader2, FileText, Download, RefreshCw
+    MessageCircle, Search, Building2,
+    X, Paperclip, Loader2, Download, AlertCircle, Eye
 } from 'lucide-react';
 import { Input } from '../../components/ui/input.jsx';
 import { Progress } from '../../components/ui/progress.jsx';
 import { Button } from '../../components/ui/button.jsx';
-import InboxService from '../../services/inbox.service.js'; //
+import InboxService from '../../services/inbox.service.js';
+import { FileText } from 'lucide-react';
 
 // --- Helper: Status to Progress % ---
-const getStatusProgress = (status) => {
+const getStatusPercentage = (status) => {
     const map = {
         'EMAIL_SENT': 30,
         'SUPPLIER_REPLIED': 35,
@@ -30,7 +31,6 @@ const getProgressColor = (status) => {
 };
 
 export default function InboxPage() {
-    // --- State ---
     const [conversations, setConversations] = useState([]);
     const [selectedPo, setSelectedPo] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -38,10 +38,10 @@ export default function InboxPage() {
     const [loadingList, setLoadingList] = useState(true);
     const [loadingChat, setLoadingChat] = useState(false);
 
-    // Split View State for Attachments
+    // Attachment Modal State
     const [activeAttachment, setActiveAttachment] = useState(null);
 
-    // 1. Fetch Sidebar List (Active Conversations)
+    // 1. Fetch Sidebar List
     useEffect(() => {
         loadConversations();
     }, []);
@@ -57,11 +57,11 @@ export default function InboxPage() {
         }
     };
 
-    // 2. Fetch Chat Messages & Reset Attachment view
+    // 2. Fetch Chat Messages
     useEffect(() => {
-        if (!selectedPo) return;
+        if (!selectedPo || !selectedPo.id) return;
 
-        setActiveAttachment(null); // Close attachment when switching chats
+        setActiveAttachment(null);
 
         const fetchChat = async () => {
             setLoadingChat(true);
@@ -77,35 +77,29 @@ export default function InboxPage() {
         };
 
         fetchChat();
-
-        // Optional: Poll for new messages every 30s
         const interval = setInterval(fetchChat, 30000);
         return () => clearInterval(interval);
     }, [selectedPo]);
 
-    // 3. Handle Attachment Click (The Fix)
+    // 3. Handle Attachment
     const handleAttachmentClick = async (fileName, messageId) => {
         try {
-            // Use the Service to get the Blob URL safely
-            // This handles both "Local PO PDFs" and "Gmail Attachments"
             const result = await InboxService.getAttachmentUrl(selectedPo.id, fileName, messageId);
-            setActiveAttachment(result);
+            setActiveAttachment({ ...result, name: fileName });
         } catch (error) {
             console.error("Failed to load attachment", error);
-            alert("Could not load attachment. Please try again.");
+            alert("Could not load attachment.");
         }
     };
 
-    // --- Render Helpers ---
     const filteredConversations = conversations.filter(po =>
-        po.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `PO-${po.id}`.toLowerCase().includes(searchTerm.toLowerCase())
+        (po.poCode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (po.supplierName || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
-
-            {/* LEFT SIDEBAR: Conversations List */}
+            {/* LEFT SIDEBAR */}
             <div className="w-80 bg-white border-r border-slate-200 flex flex-col z-10">
                 <div className="p-4 border-b border-slate-100">
                     <h1 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -114,7 +108,7 @@ export default function InboxPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
                         <Input
-                            placeholder="Search PO or Supplier..."
+                            placeholder="Search PO..."
                             className="pl-10 bg-slate-50"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -135,19 +129,18 @@ export default function InboxPage() {
                                 `}
                             >
                                 <div className="flex justify-between items-start mb-1">
-                                    <span className="font-semibold text-slate-900">PO-{po.id}</span>
+                                    <span className="font-bold text-slate-900">{po.poCode}</span>
                                     <span className="text-xs text-slate-400">
-                                        {new Date(po.lastActivityAt || po.createdAt).toLocaleDateString()}
+                                        {po.timestamp ? new Date(po.timestamp).toLocaleDateString() : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
-                                    <Building2 size={14}/> {po.supplier.name}
+                                    <Building2 size={14}/> {po.supplierName}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full text-white ${getProgressColor(po.status)}`}>
-                                        {po.status.replace('_', ' ')}
+                                        {po.status ? po.status.replace('_', ' ') : 'UNKNOWN'}
                                     </span>
-                                    {/* Alert Icon if Delay Expected */}
                                     {po.status === 'DELAY_EXPECTED' && <AlertCircle size={16} className="text-red-500" />}
                                 </div>
                             </div>
@@ -160,21 +153,26 @@ export default function InboxPage() {
             {selectedPo ? (
                 <div className="flex-1 flex flex-col h-full relative">
                     {/* Header */}
-                    <div className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 shadow-sm z-20">
-                        <div>
-                            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                PO-{selectedPo.id}
-                                <span className="text-sm font-normal text-slate-500">| {selectedPo.supplier.name}</span>
+                    <div className="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-6 shadow-sm z-20">
+                        <div className="flex flex-col justify-center">
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                {selectedPo.poCode}
                             </h2>
-                            <div className="flex items-center gap-2 mt-1 w-64">
-                                <Progress value={getStatusProgress(selectedPo.status)} className="h-1.5" />
-                                <span className="text-xs text-slate-400 font-medium">{selectedPo.status}</span>
+                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                <Building2 size={16} className="text-blue-500"/>
+                                {selectedPo.supplierName}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm"><Phone size={16}/></Button>
-                            <Button variant="outline" size="sm"><Video size={16}/></Button>
-                            <Button variant="ghost" size="sm"><AlertCircle size={16}/></Button>
+                        <div className="w-72 flex flex-col justify-center">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                    Status
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full text-white font-medium ${getProgressColor(selectedPo.status)}`}>
+                                    {selectedPo.status ? selectedPo.status.replace('_', ' ') : 'UNKNOWN'}
+                                </span>
+                            </div>
+                            <Progress value={getStatusPercentage(selectedPo.status)} className="h-2.5 w-full bg-slate-100" />
                         </div>
                     </div>
 
@@ -185,17 +183,16 @@ export default function InboxPage() {
                         ) : messages.length === 0 ? (
                             <div className="text-center text-slate-400 mt-10">
                                 <p>No messages yet.</p>
-                                <p className="text-sm">Emails sent to this PO will appear here automatically.</p>
+                                <p className="text-sm">Emails related to {selectedPo.poCode} will appear here.</p>
                             </div>
                         ) : (
-                            messages.map((msg) => {
-                                const isMe = msg.from.includes('supplymind') || msg.from === 'Me';
+                            messages.map((msg, idx) => {
+                                const isMe = msg.from && (msg.from.includes('supplymind') || msg.from === 'Me');
                                 return (
-                                    <div key={msg.id || msg.timestamp} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[70%] rounded-xl p-4 shadow-sm ${
+                                    <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[75%] rounded-xl p-4 shadow-sm ${
                                             isMe ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800'
                                         }`}>
-                                            {/* Header */}
                                             <div className="flex items-center justify-between gap-4 mb-2">
                                                 <span className={`text-xs font-bold ${isMe ? 'text-blue-100' : 'text-slate-500'}`}>
                                                     {isMe ? 'You' : msg.from}
@@ -205,7 +202,6 @@ export default function InboxPage() {
                                                 </span>
                                             </div>
 
-                                            {/* Subject */}
                                             {msg.subject && (
                                                 <div className={`text-xs font-semibold mb-2 pb-2 border-b ${
                                                     isMe ? 'border-blue-500/50' : 'border-slate-100'
@@ -214,28 +210,32 @@ export default function InboxPage() {
                                                 </div>
                                             )}
 
-                                            {/* Body (Snippet) */}
-                                            <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                                                {msg.snippet || msg.body}
+                                            {/* FULL BODY RENDER */}
+                                            <div className="text-sm whitespace-pre-wrap leading-relaxed font-sans">
+                                                {msg.body || msg.snippet}
                                             </div>
 
-                                            {/* Attachments */}
+                                            {/* Gmail-Style Attachment Pills */}
                                             {msg.attachments && msg.attachments.length > 0 && (
                                                 <div className="mt-3 pt-3 border-t border-dashed border-opacity-30 flex flex-wrap gap-2">
-                                                    {msg.attachments.map((att, idx) => (
-                                                        <Button
-                                                            key={idx}
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className={`h-auto py-1 px-2 text-xs flex items-center gap-1 ${
-                                                                isMe ? 'text-blue-100 hover:text-white hover:bg-blue-500'
-                                                                    : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                                                            }`}
+                                                    {msg.attachments.map((att, i) => (
+                                                        <div
+                                                            key={i}
                                                             onClick={() => handleAttachmentClick(att, msg.messageId)}
+                                                            className={`cursor-pointer group flex items-center gap-2 px-3 py-2 rounded-lg border text-xs transition-all ${
+                                                                isMe
+                                                                    ? 'border-blue-400 bg-blue-500/50 hover:bg-blue-500 text-white'
+                                                                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                                                            }`}
                                                         >
-                                                            <Paperclip size={12} />
-                                                            <span className="truncate max-w-[150px]">{att}</span>
-                                                        </Button>
+                                                            <div className={`p-1.5 rounded-md ${isMe ? 'bg-blue-400' : 'bg-red-100'}`}>
+                                                                <FileText size={14} className={isMe ? 'text-white' : 'text-red-500'} />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium truncate max-w-[120px]">{att}</span>
+                                                                <span className="text-[10px] opacity-70">Click to preview</span>
+                                                            </div>
+                                                        </div>
                                                     ))}
                                                 </div>
                                             )}
@@ -246,36 +246,48 @@ export default function InboxPage() {
                         )}
                     </div>
 
-                    {/* --- SPLIT VIEW: Attachment Preview --- */}
+                    {/* --- MODAL OVERLAY (Gmail Style) --- */}
                     {activeAttachment && (
-                        <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-100 border-l border-slate-300 shadow-2xl z-30 flex flex-col slide-in-right">
-                            <div className="h-12 bg-white border-b border-slate-200 flex items-center justify-between px-4">
-                                <span className="font-semibold text-sm text-slate-700">Attachment Preview</span>
-                                <div className="flex gap-2">
-                                    <Button variant="ghost" size="sm" onClick={() => window.open(activeAttachment.url, '_blank')}>
-                                        <Download size={16} className="mr-2"/> Download
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => setActiveAttachment(null)}>
-                                        <X size={20} />
-                                    </Button>
-                                </div>
-                            </div>
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                            <div className="relative w-full max-w-5xl h-[85vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
 
-                            {/* Viewer Content */}
-                            <div className="flex-1 p-4 overflow-hidden flex items-center justify-center">
-                                {activeAttachment.type === 'pdf' ? (
-                                    <iframe
-                                        src={activeAttachment.url}
-                                        className="w-full h-full rounded-lg shadow-md bg-white"
-                                        title="Attachment Preview"
-                                    />
-                                ) : (
-                                    <img
-                                        src={activeAttachment.url}
-                                        alt="Attachment"
-                                        className="max-w-full max-h-full rounded-lg shadow-md object-contain"
-                                    />
-                                )}
+                                {/* Modal Header */}
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                            <Paperclip size={18} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-slate-800 text-sm">{activeAttachment.name}</h3>
+                                            <p className="text-xs text-slate-500">Preview Mode</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => window.open(activeAttachment.url, '_blank')}>
+                                            <Download size={16} className="mr-2"/> Download
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => setActiveAttachment(null)}>
+                                            <X size={20} />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Modal Body (Preview) */}
+                                <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center overflow-auto">
+                                    {activeAttachment.type === 'pdf' ? (
+                                        <iframe
+                                            src={activeAttachment.url}
+                                            className="w-full h-full rounded shadow-sm bg-white border border-slate-200"
+                                            title="Preview"
+                                        />
+                                    ) : (
+                                        <img
+                                            src={activeAttachment.url}
+                                            alt="Preview"
+                                            className="max-w-full max-h-full object-contain rounded shadow-lg"
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -283,7 +295,7 @@ export default function InboxPage() {
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-slate-300 bg-slate-50">
                     <MessageCircle size={64} className="mb-4 opacity-20" />
-                    <p className="text-lg font-medium text-slate-400">Select a conversation to start chatting</p>
+                    <p className="text-lg font-medium text-slate-400">Select a PO to view emails</p>
                 </div>
             )}
         </div>
