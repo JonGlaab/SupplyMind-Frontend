@@ -21,6 +21,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
+import NotificationBell from '../components/NotificationBell.jsx';
 
 const DashboardLayout = () => {
     const [initials, setInitials] = useState('??');
@@ -189,13 +190,9 @@ const DashboardLayout = () => {
                             title="Inbox"
                         >
                             <MessageCircle size={20} />
-                            {/* Optional: Add unread count badge here later */}
                         </button>
 
-                        <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                        <NotificationBell />
 
                         <div className="h-9 w-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm border-2 border-white">
                             {initials}
