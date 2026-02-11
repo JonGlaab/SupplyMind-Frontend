@@ -62,17 +62,14 @@ const DashboardLayout = () => {
             {
                 label: 'Manager Perspective',
                 path: '/manager/dashboard',
-                icon: <LayoutDashboard size={20} className="text-purple-500" />
             },
             {
                 label: 'Procurement Perspective',
                 path: '/procurement/dashboard',
-                icon: <ShoppingCart size={20} className="text-orange-500" />
             },
             {
                 label: 'Warehouse Perspective',
                 path: '/warehouselist', // Usually staff start at the warehouse list
-                icon: <Package size={20} className="text-blue-500" />
             }
         ] : []),
 
@@ -102,9 +99,9 @@ const DashboardLayout = () => {
         // 4. WAREHOUSE OPERATIONS
         ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Warehouse Operations' },
-            { label: 'Receive Shipments', path: 'warehouse/receiving', icon: <Truck size={20} /> },
-            { label: 'Initiate Return', path: 'warehouse/returnorder', icon: <RotateCcw size={20} /> },
-            // Note: Inventory is accessed via the WarehouseList link for a specific ID
+            { label: 'Warehouse Operations', path: 'staff/dashboard', icon: <Truck size={20} /> },
+            { label: 'Receive Shipments', path: 'staff/receiving', icon: <Truck size={20} /> },
+            { label: 'Initiate Return', path: 'staff/returnorder', icon: <RotateCcw size={20} /> },
         ] : []),
 
         // 5. SYSTEM
