@@ -1,43 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
-import { Loader2, Check, X, Save, ShoppingCart, User, Building, Hash, Send, FileText, AlertTriangle } from 'lucide-react';
+import { Loader2, Check, X, Save, User, Hash, Send, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { Badge } from '../../../components/ui/badge';
-import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
-import { Label } from '../../../components/ui/label';
 import api from '../../../services/api';
+import SendEmailModal from '../../shared/SendEmailModal';
 
 const PO_STATUSES = [
     "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED",
     "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
 ];
-
-// Helper function to convert basic HTML to plain text for the textarea
-const htmlToPlainText = (html) => {
-    if (!html) return '';
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    doc.querySelectorAll('p, br').forEach(el => el.appendChild(document.createTextNode('\n')));
-    return doc.body.textContent || '';
-};
-
 export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
     const [po, setPo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
-    const [isEmailView, setIsEmailView] = useState(false);
-    const [emailDraft, setEmailDraft] = useState({ toEmail: '', subject: '', body: '' });
+
+    // NEW: State to control the separate SendEmailModal
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
     useEffect(() => {
         if (isOpen && poId) {
             fetchPoDetails();
         } else {
-            setIsEmailView(false);
-            setError(''); // Reset error on close
+            setError('');
+            setIsEmailModalOpen(false);
         }
     }, [isOpen, poId]);
 
@@ -61,44 +51,11 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         setError('');
         try {
             await api.post(`/api/core/purchase-orders/${poId}/approve`);
-            onPoUpdated(); // Refresh the parent list
-            fetchPoDetails(); // Re-fetch details for this modal to get the new state
+            onPoUpdated();
+            fetchPoDetails();
         } catch (err) {
             console.error("Failed to approve PO", err);
             setError(err.response?.data?.message || "An error occurred during approval.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const prepareAndShowEmailView = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            const emailRes = await api.get(`/api/core/purchase-orders/${poId}/email-draft`);
-            const plainTextBody = htmlToPlainText(emailRes.data.body);
-            setEmailDraft({ ...emailRes.data, body: plainTextBody });
-            setIsEmailView(true);
-        } catch (err) {
-            console.error("Failed to prepare email view", err);
-            setError("Failed to load email draft.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSendEmail = async () => {
-        setLoading(true);
-        try {
-            const htmlBody = emailDraft.body.replace(/\n/g, '<br>');
-            const emailToSend = { ...emailDraft, body: `<div>${htmlBody}</div>` };
-            
-            await api.post(`/api/core/purchase-orders/${poId}/send`, emailToSend);
-            onPoUpdated();
-            onOpenChange(false);
-        } catch (err) {
-            console.error("Failed to send email", err);
-            setError("Failed to send email.");
         } finally {
             setLoading(false);
         }
@@ -145,7 +102,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                     <Card><CardHeader className="pb-2"><CardTitle className="text-base">Details</CardTitle></CardHeader>
                         <CardContent className="text-sm space-y-2">
                             <div className="flex items-center"><Hash className="h-4 w-4 mr-2 text-gray-400" /> PO Number: <span className="font-semibold ml-auto">{po.poId}</span></div>
-                            <div className="flex items-center"><User className="h-4 w-4 mr-2 text-gray-400" /> Buyer: <span className="font-semibold ml-auto">{po.buyerEmail}</span></div>
+                            <div className="flex items-center"><User className="h-4 w-4 mr-2 text-gray-400" /> Buyer: <span className="font-semibold ml-auto break-all">{po.buyerEmail}</span></div>
                             <div className="flex items-center"><Badge>{po.status}</Badge></div>
                         </CardContent>
                     </Card>
@@ -179,7 +136,6 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                                 </Select>
                                 <Button onClick={handleStatusUpdate}><Save className="mr-2 h-4 w-4" /> Save Status</Button>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2">Use the "Approve" button for the official approval workflow.</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -195,66 +151,42 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                             <Button onClick={handleApprove}><Check className="mr-2 h-4 w-4" /> Approve</Button>
                         </>
                     )}
+                    {/* TRIGGER: Opens the standalone modal instead of internal view */}
                     {po?.status === 'APPROVED' && (
-                        <Button onClick={prepareAndShowEmailView}><Send className="mr-2 h-4 w-4" /> Email to Supplier</Button>
+                        <Button onClick={() => setIsEmailModalOpen(true)}>
+                            <Send className="mr-2 h-4 w-4" /> Email to Supplier
+                        </Button>
                     )}
                 </div>
             </DialogFooter>
         </>
     );
 
-    const renderEmailView = () => (
-        <>
-            <div className="grid grid-cols-2 gap-6 h-full py-4">
-                <div className="space-y-4 flex flex-col">
-                    <div className="space-y-1">
-                        <Label htmlFor="toEmail">To:</Label>
-                        <Input id="toEmail" placeholder="To" value={emailDraft.toEmail} onChange={(e) => setEmailDraft(d => ({ ...d, toEmail: e.target.value }))} />
-                    </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="subject">Subject:</Label>
-                        <Input id="subject" placeholder="Subject" value={emailDraft.subject} onChange={(e) => setEmailDraft(d => ({ ...d, subject: e.target.value }))} />
-                    </div>
-                    <div className="space-y-1 flex-grow flex flex-col">
-                        <Label htmlFor="body">Body:</Label>
-                        <Textarea
-                            id="body"
-                            placeholder="Email body..."
-                            value={emailDraft.body}
-                            onChange={(e) => setEmailDraft(d => ({ ...d, body: e.target.value }))}
-                            className="flex-grow"
-                        />
-                    </div>
-                </div>
-                <div>
-                    <iframe src={po.pdfUrl} className="w-full h-full border rounded-md" title="Signed PO Preview" />
-                </div>
-            </div>
-            <DialogFooter className="sm:justify-between">
-                <div>
-                    <Button variant="outline" onClick={handleViewPdf} disabled={!po?.pdfUrl}><FileText className="mr-2 h-4 w-4" /> View Signed PDF</Button>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsEmailView(false)}>Back to Details</Button>
-                    <Button onClick={handleSendEmail} disabled={loading}><Send className="mr-2 h-4 w-4" /> {loading ? 'Sending...' : 'Send Email'}</Button>
-                </div>
-            </DialogFooter>
-        </>
-    );
-
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>{isEmailView ? "Send Purchase Order" : "Purchase Order Details"}</DialogTitle>
-                    <DialogDescription>
-                        {isEmailView ? `Sending PO #${po?.poId} to ${po?.supplierName}` : `Review and manage PO #${po?.poId}`}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex-grow overflow-y-auto">
-                    {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (po ? (isEmailView ? renderEmailView() : renderDetailsView()) : <p>No purchase order data.</p>)}
-                </div>
-            </DialogContent>
-        </Dialog>
+        <>
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Purchase Order Details</DialogTitle>
+                        <DialogDescription>Review and manage PO #{po?.poId}</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow overflow-y-auto">
+                        {loading ? <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div> : (po ? renderDetailsView() : <p>No data available.</p>)}
+                    </div>
+                    {po && (
+                        <SendEmailModal
+                            isOpen={isEmailModalOpen}
+                            onClose={() => setIsEmailModalOpen(false)}
+                            po={po}
+                            supplierEmail={po.supplierEmail}
+                            onEmailSent={() => {
+                                setIsEmailModalOpen(false);
+                                fetchPoDetails(); // Re-fetch to show updated status
+                            }}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

@@ -40,6 +40,8 @@ import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 import PurchaseOrderApproval from "./pages/manager/PurchaseOrderApproval.jsx";
 
+import StripePayPage from "./pages/StripePayPage";
+
 const App = () => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
@@ -100,6 +102,8 @@ const App = () => {
                 <Route path="manager/po-approval" element={<PurchaseOrderApproval />} /> {/* ADD THIS */}
                 <Route path="manager/returns-inspection/:returnId" element={<ReturnsInspection />} />
             </Route>
+
+            <Route path="/payments/po/:poId" element={<StripePayPage />} />
 
             <Route path="/mobile" element={<MobileLayout />}>
                 <Route index element={<Navigate to="home" replace />} />
