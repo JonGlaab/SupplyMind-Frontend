@@ -9,6 +9,7 @@ import MobileLayout from './layouts/MobileLayout.jsx';
 import Login from './pages/Login.jsx';
 import ChangePassword from './pages/ChangePassword.jsx';
 import Settings from './pages/Settings.jsx';
+
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ManagerDashboard from './pages/manager/ManagerDashboard.jsx';
 import ProcurementDashboard from "./pages/procurementofficer/ProcurementDashboard.jsx";
@@ -24,7 +25,9 @@ import ReturnRequest from "./pages/staff/ReturnRequest.jsx";
 import ProcessOrder from "./pages/staff/ProcessOrder.jsx";
 import Receiving from "./pages/staff/Receiving.jsx";
 import WarehouseInventory from "./pages/shared/WarehouseInventory.jsx";
-import WarehouseTransactions from "./pages/shared/WarehouseTransactions.jsx";
+import WarehouseTransferHistory from "./pages/shared/WarehouseTransferHistory.jsx";
+import WarehousePOsHistory from "./pages/staff/WarehouseOrdersReceived.jsx";
+import WarehouseDashboard from "./pages/staff/WarehouseDashboard.jsx";
 
 // Returns & PO Shared
 import PurchaseOrderView from "./pages/shared/PurchaseOrder.jsx";
@@ -50,7 +53,7 @@ const App = () => {
             case 'ADMIN': return "/admin/dashboard";
             case 'MANAGER': return "/manager/dashboard";
             case 'PROCUREMENT_OFFICER': return "/procurement/dashboard";
-            default: return "/warehouse/dashboard";
+            default: return "/staff/dashboard";
         }
     };
 
@@ -73,6 +76,7 @@ const App = () => {
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
                 <Route path="manager/warehouselist" element={<WarehouseList />} />
+                <Route path="staff/dashboard" element={<WarehouseDashboard />} />
                 <Route path="warehouses/:warehouseId/inventory" element={<WarehouseInventory />} />
                 <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
 
@@ -81,12 +85,13 @@ const App = () => {
                 <Route path="procurement/suppliers/:supplierId/products" element={<SupplierProductView />} />
                 <Route path="procurement/purchaseorders" element={<PurchaseOrders />} />
 
-                {/* Warehouse */}
-                <Route path="warehouse/returnorder" element={<ReturnRequest />} />
-                <Route path="warehouse/receiving" element={<Receiving />} />
-                <Route path="receiving/process/:poId" element={<ProcessOrder />} />
-                <Route path="manager/warehouselist" element={<WarehouseList />} />
-                <Route path="warehouses/:warehouseId/transactions" element={<WarehouseTransactions />} />
+                {/* Warehouse  */}
+                <Route path="staff/receiving" element={<Receiving />} />
+                <Route path="staff/returnorder" element={<ReturnRequest />} />
+                <Route path="staff/transfer" element={<div className="p-8">Internal Transfer Page (Coming Soon)</div>} />
+                <Route path="staff/:warehouseId/transfers" element={<WarehouseTransferHistory />} />
+                <Route path="staff/:warehouseId/receiving-history" element={<WarehousePOsHistory />} />
+                <Route path="staff/process/:poId" element={<ProcessOrder />} />
 
                 {/* Manager Oversight */}
                 <Route path="manager/returns-oversight" element={<ReturnRequestOversight />} />
