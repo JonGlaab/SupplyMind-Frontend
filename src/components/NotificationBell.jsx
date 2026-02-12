@@ -10,16 +10,23 @@ import {
 } from './ui/dropdown-menu.jsx';
 
 export default function NotificationBell() {
+    const userRole = localStorage.getItem('userRole');
+    const navigate = useNavigate();
+
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
 
     // 1. Ref to track the menu DOM element
     const menuRef = useRef(null);
 
     // 2. Click Outside Logic
     useEffect(() => {
+
+        if (userRole === 'STAFF') {
+            return;
+        }
+
         function handleClickOutside(event) {
             // If menu is open AND click is NOT inside the menu component
             if (isOpen && menuRef.current && !menuRef.current.contains(event.target)) {
@@ -37,10 +44,14 @@ export default function NotificationBell() {
 
     // 3. Load Data
     const loadNotifications = async () => {
+        if (userRole === 'STAFF') {
+            return;
+        }
         try {
             const count = await NotificationService.getUnreadCount();
             setUnreadCount(count);
 
+            // Only fetch full list if menu is open to save bandwidth
             if (isOpen) {
                 const list = await NotificationService.getMyNotifications();
                 setNotifications(list);
@@ -54,7 +65,11 @@ export default function NotificationBell() {
         loadNotifications();
         const interval = setInterval(loadNotifications, 60000);
         return () => clearInterval(interval);
-    }, [isOpen]);
+    }, [isOpen, userRole]);
+
+    if (userRole === 'STAFF') {
+        return null;
+    }
 
     // 5. Handle Click
     const handleItemClick = async (n) => {
@@ -69,6 +84,8 @@ export default function NotificationBell() {
         // Navigate based on Reference Type
         if (n.referenceType === 'PURCHASE_ORDER') {
             navigate(`/purchase-order/${n.referenceId}`);
+        } else if (n.referenceType === 'PRODUCT') {
+            // navigate(`/inventory/${n.referenceId}`); // Example
         }
     };
 
