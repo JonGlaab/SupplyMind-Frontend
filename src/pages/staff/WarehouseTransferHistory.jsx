@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
+import { Badge } from '../../components/ui/badge.jsx';
 
 const WarehouseTransferHistory = () => {
     // Static data for now to guarantee it loads

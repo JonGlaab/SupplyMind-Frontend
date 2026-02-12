@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { ArrowLeft, FileText, CheckCircle, Package, Calendar, User } from 'lucide-react';
-import PurchaseOrderApprovalModal from "./PurchaseOrderApprovalModal.jsx";
+import PurchaseOrderApprovalModal from "../manager/components/PurchaseOrderApprovalModal.jsx";
 
 const PurchaseOrderView = () => {
     const { poId } = useParams();

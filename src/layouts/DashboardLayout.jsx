@@ -70,44 +70,43 @@ const DashboardLayout = () => {
             },
             {
                 label: 'Warehouse Perspective',
-                path: '/warehouselist', // Usually staff start at the warehouse list
+                path: '/staff/dashboard',
             }
         ] : []),
 
         // 1. PRIMARY DASHBOARDS
-        ...(userRole === 'ADMIN' ? [{ label: 'Admin System', path: 'admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
-        ...(userRole === 'MANAGER' ? [{ label: 'Manager Dashboard', path: 'manager/dashboard', icon: <LayoutDashboard size={20} /> }] : []),
-        ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: 'procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
-        // Fix: Ensure this route actually exists in App.jsx or points to the list
-        ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: 'warehouselist', icon: <Package size={20} /> }] : []),
+        ...(userRole === 'ADMIN' ? [{ label: 'Admin System', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
+        ...(userRole === 'MANAGER' ? [{ label: 'Manager Dashboard', path: '/manager/dashboard', icon: <LayoutDashboard size={20} /> }] : []),
+        ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
+        ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> }] : []),
 
         // 2. MANAGER & ADMIN OVERSIGHT
         ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Managerial Tools' },
-            { label: 'Returns Authorization', path: 'manager/returns-oversight', icon: <ClipboardCheck size={20} /> },
-            { label: 'PO Approvals', path: 'manager/po-approval', icon: <ShieldCheck size={20} /> }, // ADD THIS
-            { label: 'Inventory Network', path: 'warehouselist', icon: <Truck size={20} /> },
-            { label: 'Master Product List', path: 'productlist', icon: <Package size={20} /> },
+            { label: 'Returns Authorization', path: '/manager/returns-oversight', icon: <ClipboardCheck size={20} /> },
+            { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> }, // ADD THIS
+            { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
+            { label: 'Master Product List', path: '/staff/productlist', icon: <Package size={20} /> },
         ] : []),
 
         // 3. PROCUREMENT TOOLS
         ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Procurement & Inventory' },
-            { label: 'Suppliers', path: 'procurement/suppliers', icon: <Users size={20} /> },
-            { label: 'Purchase Orders', path: 'procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
+            { label: 'Suppliers', path: '/procurement/suppliers', icon: <Users size={20} /> },
+            { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
         ] : []),
 
         // 4. WAREHOUSE OPERATIONS
         ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Warehouse Operations' },
-            { label: 'Warehouse Operations', path: 'staff/dashboard', icon: <Truck size={20} /> },
-            { label: 'Receive Shipments', path: 'staff/receiving', icon: <Truck size={20} /> },
-            { label: 'Initiate Return', path: 'staff/returnorder', icon: <RotateCcw size={20} /> },
+            { label: 'Warehouse Operations', path: '/staff/dashboard', icon: <Truck size={20} /> },
+            { label: 'Receive Shipments', path: '/staff/receiving', icon: <Truck size={20} /> },
+            { label: 'Initiate Return', path: '/staff/returnrequest', icon: <RotateCcw size={20} /> },
         ] : []),
 
         // 5. SYSTEM
         { type: 'divider' },
-        { label: 'User Settings', path: 'settings', icon: <Settings size={20} /> }
+        { label: 'User Settings', path: '/settings', icon: <Settings size={20} /> }
     ];
 
     return (
@@ -184,13 +183,17 @@ const DashboardLayout = () => {
                         <Badge variant="outline" className="hidden sm:flex border-slate-200 text-slate-500 font-medium">
                             {userRole?.replace('_', ' ')}
                         </Badge>
-                        <button
-                            onClick={() => navigate('/inbox')}
-                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative"
-                            title="Inbox"
-                        >
-                            <MessageCircle size={20} />
-                        </button>
+                        {/* ONLY SHOW INBOX TO NON-STAFF ROLES */}
+                        {userRole !== 'STAFF' && (
+                            <button
+                                onClick={() => navigate('/inbox')}
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative"
+                                title="Inbox"
+                            >
+                                <MessageCircle size={20} />
+                                {/* Optional: Add a small red dot if you have unread messages logic here */}
+                            </button>
+                        )}
 
                         <NotificationBell />
 

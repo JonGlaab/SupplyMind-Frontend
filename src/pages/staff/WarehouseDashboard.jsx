@@ -16,7 +16,6 @@ const WarehouseDashboard = () => {
                 const res = await api.get('/api/core/warehouses');
                 const data = res.data.content || res.data || [];
                 setWarehouses(data);
-                // Default to first warehouse if available
                 if (data.length > 0) setSelectedWhId(data[0].warehouseId.toString());
             } catch (err) {
                 console.error("Error fetching warehouses", err);
@@ -46,7 +45,7 @@ const WarehouseDashboard = () => {
             title: "Return Request",
             description: "Send stock back to supplier",
             icon: <RotateCcw size={24} className="text-rose-600" />,
-            path: `/staff/returnorder?wh=${selectedWhId}`,
+            path: `/staff/returnrequest?wh=${selectedWhId}`,
             color: "bg-rose-50"
         },
         {

@@ -30,7 +30,7 @@ const Receiving = () => {
             <div className="p-8 text-center">
                 <h2 className="text-xl font-bold">No Warehouse Selected</h2>
                 <p className="text-slate-500 mb-4">Please select a location from the dashboard to manage receiving.</p>
-                <Button onClick={() => navigate('/warehouse/dashboard')}>Return to Dashboard</Button>
+                <Button onClick={() => navigate('/staff/dashboard')}>Return to Dashboard</Button>
             </div>
         );
     }
@@ -82,7 +82,7 @@ const Receiving = () => {
                     </h1>
                     <p className="text-slate-500">Managing arrivals for this location.</p>
                 </div>
-                <Link to={`/warehouses/${warehouseId}/receiving-history`}>
+                <Link to={`/staff/${warehouseId}/receiving-history`}>
                     <Button variant="outline" className="flex items-center gap-2">
                         <History size={18} /> View Receiving History
                     </Button>
@@ -162,7 +162,7 @@ const OrderCard = ({ order, variant, navigate }) => (
                 <p className="text-sm text-slate-600">{order.items?.length || 0} items from {order.supplierName}</p>
             </div>
             <Button
-                onClick={() => order.status === 'DELIVERED' && navigate(`/receiving/process/${order.poId}`)}
+                onClick={() => order.status === 'DELIVERED' && navigate(`/staff/process/${order.poId}`)}
                 variant={variant === 'process' ? 'default' : 'ghost'}
                 size="sm"
                 disabled={order.status !== 'DELIVERED'}

@@ -52,7 +52,7 @@ const ReturnRequest = () => {
                 }))
             };
 
-            const res = await api.post('/api/returns', payload);
+            const res = await api.post('/api/core/returns', payload);
             alert(`Return Request ${res.data.id} created successfully!`);
             navigate('/returns'); // Redirect to a list view after success
         } catch (err) {

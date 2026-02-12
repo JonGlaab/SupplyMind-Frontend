@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 
-const ReturnRequestOversight = () => {
+const ReturnRequestApproval = () => {
     const navigate = useNavigate();
     const [returns, setReturns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -149,4 +149,4 @@ const getStatusVariant = (status) => {
     }
 };
 
-export default ReturnRequestOversight;
+export default ReturnRequestApproval;
