@@ -40,7 +40,7 @@ const ProcessOrder = () => {
 
             const initialItems = rawItems.map(item => ({
                 ...item,
-                receiveQty: item.remainingQty || 0,
+                receiveQty: item.orderedQty || 0,
                 confirmed: false
             }));
             setItems(initialItems);
@@ -61,9 +61,13 @@ const ProcessOrder = () => {
 
     const handleQtyChange = (itemId, val) => {
         const numVal = Math.max(0, parseInt(val) || 0);
-        setItems(prev => prev.map(item =>
-            item.poItemId === itemId ? { ...item, receiveQty: numVal } : item
-        ));
+        setItems(prev => prev.map(item => {
+            if (item.poItemId === itemId) {
+                const newReceiveQty = Math.min(numVal, item.orderedQty);
+                return { ...item, receiveQty: newReceiveQty };
+            }
+            return item;
+        }));
     };
 
     const toggleConfirm = (itemId) => {

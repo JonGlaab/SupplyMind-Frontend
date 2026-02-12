@@ -11,7 +11,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 
-const WarehouseTransferHistory = () => {
+const TransferHistory = () => {
     const { warehouseId } = useParams();
     const navigate = useNavigate();
 
@@ -153,4 +153,4 @@ const WarehouseTransferHistory = () => {
     );
 };
 
-export default WarehouseTransferHistory;
+export default TransferHistory;
