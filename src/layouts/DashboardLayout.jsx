@@ -83,7 +83,7 @@ const DashboardLayout = () => {
         // 2. MANAGER & ADMIN OVERSIGHT
         ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Managerial Tools' },
-            { label: 'Returns Authorization', path: '/manager/returns-oversight', icon: <ClipboardCheck size={20} /> },
+            { label: 'Returns Authorization', path: '/manager/returns-approval', icon: <ClipboardCheck size={20} /> },
             { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> }, // ADD THIS
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
             { label: 'Master Product List', path: '/staff/productlist', icon: <Package size={20} /> },
@@ -100,7 +100,6 @@ const DashboardLayout = () => {
         ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Warehouse Operations' },
             { label: 'Warehouse Operations', path: '/staff/dashboard', icon: <Truck size={20} /> },
-            { label: 'Receive Shipments', path: '/staff/receiving', icon: <Truck size={20} /> },
             { label: 'Initiate Return', path: '/staff/returnrequest', icon: <RotateCcw size={20} /> },
         ] : []),
 

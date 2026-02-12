@@ -7,23 +7,26 @@ import { Input } from '../../components/ui/input.jsx';
 import { Textarea } from '../../components/ui/textarea.jsx';
 import {
     ArrowLeft, Save, Plus, Trash2,
-    ClipboardList, PackageOpen, AlertCircle
+    ClipboardList, PackageOpen, AlertCircle, Loader2
 } from 'lucide-react';
 
 const ReturnRequest = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [poVerified, setPoVerified] = useState(false);
+    const [poError, setPoError] = useState('');
+    const [availableItems, setAvailableItems] = useState([]);
 
     const [formData, setFormData] = useState({
         poId: '',
         reason: '',
-        items: [{ inventoryId: '', quantity: '', reason: '' }]
+        items: [{ poItemId: '', qtyReturnRequested: 0, conditionNotes: '' }]
     });
 
     const handleAddItem = () => {
         setFormData({
             ...formData,
-            items: [...formData.items, { inventoryId: '', quantity: '', reason: '' }]
+            items: [...formData.items, { poItemId: '', qtyReturnRequested: 0, conditionNotes: '' }]
         });
     };
 
@@ -32,32 +35,97 @@ const ReturnRequest = () => {
         setFormData({ ...formData, items: newItems });
     };
 
+    const verifyPO = async () => {
+        if (!formData.poId) return;
+        setLoading(true);
+        setPoError('');
+        try {
+            const res = await api.get(`/api/core/purchase-orders/${formData.poId}`);
+            const po = res.data;
+
+            if (po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'RECEIVED') {
+                setPoError(`PO status is ${po.status}. Only completed orders can be returned.`);
+                setPoVerified(false);
+            } else {
+                setPoVerified(true);
+                setAvailableItems(po.items || []);
+                setPoError('');
+            }
+        } catch (err) {
+            setPoError("Purchase Order not found.");
+            setPoVerified(false);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleItemChange = (index, field, value) => {
         const newItems = [...formData.items];
-        newItems[index][field] = value;
+        const processedValue = (field === 'poItemId' || field === 'qtyReturnRequested')
+            ? (value === '' ? '' : Number(value))
+            : value;
+
+        newItems[index][field] = processedValue;
         setFormData({ ...formData, items: newItems });
     };
 
+    const getFieldError = (item) => {
+        if (!item.poItemId) return null;
+
+        const poMatch = availableItems.find(i => (i.poItemId || i.id) === Number(item.poItemId));
+
+        const max = poMatch?.receivedQty || poMatch?.receivedQtyOnPo || poMatch?.quantity || 0;
+        const current = Number(item.qtyReturnRequested) || 0;
+
+        if (current > max) return `Max returnable: ${max}`;
+        if (current <= 0 && item.poItemId) return "Must be > 0";
+        return null;
+    };
+
+    const canSubmit =
+        poVerified &&
+        formData.reason.trim().length > 0 &&
+        formData.items.length > 0 &&
+        formData.items.every(item => {
+            const err = getFieldError(item);
+            const hasId = !!item.poItemId;
+            const hasQty = Number(item.qtyReturnRequested) > 0;
+            return hasId && hasQty && !err;
+        });
+
+    console.log("Can Submit?", { poVerified, reason: formData.reason.length, items: formData.items.length, canSubmit });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!canSubmit) {
+            console.error("Form is invalid, blocking submission");
+            return;
+        }
+
         setLoading(true);
         try {
             const payload = {
-                poId: parseInt(formData.poId),
+                poId: Number(formData.poId),
                 reason: formData.reason,
+                requestedBy: JSON.parse(localStorage.getItem('user'))?.username || "Staff",
                 items: formData.items.map(item => ({
-                    ...item,
-                    inventoryId: parseInt(item.inventoryId),
-                    quantity: parseInt(item.quantity)
+                    poItemId: Number(item.poItemId),
+                    qtyReturnRequested: Number(item.qtyReturnRequested),
+                    conditionNotes: item.conditionNotes
                 }))
             };
-
-            const res = await api.post('/api/core/returns', payload);
-            alert(`Return Request ${res.data.id} created successfully!`);
-            navigate('/returns'); // Redirect to a list view after success
+            await api.post('/api/core/returns', payload);
+            navigate('/staff/dashboard');
         } catch (err) {
-            console.error("Return creation failed", err);
-            alert("Error: " + (err.response?.data?.message || "Check PO ID and Inventory permissions."));
+            const serverData = err.response?.data;
+            console.error("Raw Error from Server:", serverData);
+
+            // Ensure we only set a STRING to state, never the whole object
+            const errorMessage = typeof serverData === 'object'
+                ? (serverData.message || serverData.error || "Internal Server Error")
+                : "Submission failed.";
+
+            setPoError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -66,37 +134,40 @@ const ReturnRequest = () => {
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <Button variant="ghost" onClick={() => navigate(-1)}>
+                <Button variant="ghost" onClick={() => navigate(-1)} type="button">
                     <ArrowLeft size={18} className="mr-2" /> Back
                 </Button>
                 <h1 className="text-2xl font-bold tracking-tight">Initiate Return Request</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* General Information */}
-                <Card className="shadow-sm">
-                    <CardHeader className="border-b bg-slate-50/50">
+                <Card>
+                    <CardHeader className="bg-slate-50/50 border-b">
                         <CardTitle className="text-sm flex items-center gap-2">
-                            <ClipboardList size={18} className="text-blue-600" />
-                            General Information
+                            <ClipboardList size={18} className="text-blue-600" /> General Info
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Purchase Order ID (PO #)</label>
-                            <Input
-                                required
-                                type="number"
-                                placeholder="Enter PO Number"
-                                value={formData.poId}
-                                onChange={e => setFormData({...formData, poId: e.target.value})}
-                            />
+                            <label className="text-sm font-medium">PO Number</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="number"
+                                    value={formData.poId}
+                                    onChange={e => {
+                                        setFormData({...formData, poId: e.target.value});
+                                        setPoVerified(false);
+                                    }}
+                                />
+                                <Button type="button" onClick={verifyPO} variant="outline">Verify</Button>
+                            </div>
+                            {poError && <p className="text-xs text-red-500 font-medium">{poError}</p>}
+                            {poVerified && <p className="text-xs text-green-600 font-medium">✓ PO Verified</p>}
                         </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium">Main Reason for Return</label>
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="text-sm font-medium">Reason</label>
                             <Textarea
                                 required
-                                placeholder="Describe why this entire shipment is being returned..."
                                 value={formData.reason}
                                 onChange={e => setFormData({...formData, reason: e.target.value})}
                             />
@@ -104,91 +175,69 @@ const ReturnRequest = () => {
                     </CardContent>
                 </Card>
 
-                {/* Line Items */}
-                <Card className="shadow-sm">
-                    <CardHeader className="border-b bg-slate-50/50 flex flex-row items-center justify-between">
+                <Card>
+                    <CardHeader className="bg-slate-50/50 border-b flex flex-row items-center justify-between">
                         <CardTitle className="text-sm flex items-center gap-2">
-                            <PackageOpen size={18} className="text-blue-600" />
-                            Return Line Items
+                            <PackageOpen size={18} className="text-blue-600" /> Return Items
                         </CardTitle>
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddItem}>
-                            <Plus size={16} className="mr-1" /> Add Item
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddItem} disabled={!poVerified}>
+                            <Plus size={16} className="mr-1" /> Add
                         </Button>
                     </CardHeader>
                     <CardContent className="pt-6">
-                        {formData.items.map((item, index) => (
-                            <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 p-4 border rounded-lg bg-white relative">
-                                <div className="md:col-span-3">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase">Inventory ID</label>
-                                    <Input
-                                        required
-                                        type="number"
-                                        value={item.inventoryId}
-                                        onChange={e => handleItemChange(index, 'inventoryId', e.target.value)}
-                                    />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase">Qty</label>
-                                    <Input
-                                        required
-                                        type="number"
-                                        value={item.quantity}
-                                        onChange={e => handleItemChange(index, 'quantity', e.target.value)}
-                                    />
-                                </div>
-                                <div className="md:col-span-6">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase">Item Reason</label>
-                                    <Input
-                                        placeholder="Defective, wrong size, etc."
-                                        value={item.reason}
-                                        onChange={e => handleItemChange(index, 'reason', e.target.value)}
-                                    />
-                                </div>
-                                <div className="md:col-span-1 flex items-end pb-1">
-                                    {formData.items.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-red-500 hover:bg-red-50"
-                                            onClick={() => handleRemoveItem(index)}
+                        {formData.items.map((item, index) => {
+                            const error = getFieldError(item);
+                            return (
+                                <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 mb-4 p-4 border rounded-lg">
+                                    <div className="md:col-span-5">
+                                        <label className="text-[10px] font-bold uppercase text-slate-400">Product</label>
+                                        <select
+                                            className="w-full h-10 border rounded-md px-3 text-sm"
+                                            value={item.poItemId}
+                                            onChange={e => handleItemChange(index, 'poItemId', e.target.value)}
+                                            disabled={!poVerified}
                                         >
+                                            <option value="">-- Select Item --</option>
+                                            {availableItems.map(p => (
+                                                <option key={p.poItemId || p.id} value={p.poItemId || p.id}>
+                                                    {p.productName} (Available: {p.receivedQty || p.receivedQtyOnPo || p.quantity || 0})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] font-bold uppercase text-slate-400">Qty</label>
+                                        <Input
+                                            type="number"
+                                            className={error ? "border-red-500" : ""}
+                                            value={item.qtyReturnRequested}
+                                            onChange={e => handleItemChange(index, 'qtyReturnRequested', e.target.value)}
+                                        />
+                                        {error && <p className="text-[10px] text-red-500 mt-1 font-bold">{error}</p>}
+                                    </div>
+                                    <div className="md:col-span-4">
+                                        <label className="text-[10px] font-bold uppercase text-slate-400">Notes</label>
+                                        <Input
+                                            value={item.conditionNotes}
+                                            onChange={e => handleItemChange(index, 'conditionNotes', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1 flex items-end">
+                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} className="text-red-500">
                                             <Trash2 size={18} />
                                         </Button>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-
-                        {formData.items.length === 0 && (
-                            <div className="text-center py-6 text-slate-400 flex flex-col items-center">
-                                <AlertCircle className="mb-2" />
-                                <p>No items added to this return.</p>
-                            </div>
-                        )}
+                            );
+                        })}
                     </CardContent>
                 </Card>
 
                 <div className="flex gap-4">
-                    <Button
-                        type="submit"
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 h-12"
-                        disabled={loading}
-                    >
-                        {loading ? "Processing..." : (
-                            <span className="flex items-center gap-2">
-                                <Save size={18} /> Submit Return Request
-                            </span>
-                        )}
+                    <Button type="submit" className="flex-1 bg-blue-600 h-12" disabled={loading || !canSubmit}>
+                        {loading ? <Loader2 className="animate-spin" /> : <><Save className="mr-2" /> Submit Return</>}
                     </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="h-12 px-8"
-                        onClick={() => navigate(-1)}
-                    >
-                        Cancel
-                    </Button>
+                    <Button type="button" variant="outline" className="h-12 px-8" onClick={() => navigate(-1)}>Cancel</Button>
                 </div>
             </form>
         </div>

@@ -31,7 +31,7 @@ import WarehouseDashboard from "./pages/staff/WarehouseDashboard.jsx";
 
 // Returns & PO Shared
 import PurchaseOrderView from "./pages/shared/PurchaseOrder.jsx";
-import ReturnsInspection from "./pages/shared/ReturnsInspection.jsx";
+import ReturnInspection from "./pages/shared/ReturnsInspection.jsx";
 import ReturnRequestApproval from "./pages/manager/ReturnRequestApproval.jsx";
 
 // Mobile
@@ -100,11 +100,9 @@ const App = () => {
 
                 {/* MANAGER */}
                 <Route path="manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="manager/returns-oversight" element={<ReturnRequestApproval />} />
-                <Route path="manager/returns-inspection/:returnId" element={<ReturnsInspection />} />
-                <Route path="manager/returns-oversight" element={<ReturnRequestApproval />} />
-                <Route path="manager/po-approval" element={<PurchaseOrderApproval />} /> {/* ADD THIS */}
-                <Route path="manager/returns-inspection/:returnId" element={<ReturnsInspection />} />
+                <Route path="manager/po-approval" element={<PurchaseOrderApproval />} />
+                <Route path="manager/returns-approval" element={<ReturnRequestApproval />} />
+                <Route path="manager/returns-approval/:id" element={<ReturnInspection />} />
             </Route>
 
             <Route

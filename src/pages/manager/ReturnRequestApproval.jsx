@@ -14,7 +14,7 @@ const ReturnRequestApproval = () => {
     const navigate = useNavigate();
     const [returns, setReturns] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState('PENDING'); // 'PENDING' or 'HISTORY'
+    const [viewMode, setViewMode] = useState('PENDING');
 
     useEffect(() => {
         fetchReturns();
@@ -23,8 +23,7 @@ const ReturnRequestApproval = () => {
     const fetchReturns = async () => {
         try {
             setLoading(true);
-            // Assuming your backend supports filtering by status or you filter client-side
-            const res = await api.get('/api/returns/list'); // Adjust path based on your list endpoint
+            const res = await api.get('/api/core/returns/list');
             setReturns(res.data.content || res.data || []);
         } catch (err) {
             console.error("Failed to fetch returns", err);
@@ -112,7 +111,7 @@ const ReturnRequestApproval = () => {
                                                 size="sm"
                                                 variant="ghost"
                                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                                onClick={() => navigate(`/manager/returns-inspection/${item.id}`)}
+                                                onClick={() => navigate(`/manager/returns-approval/${item.id}`)}
                                             >
                                                 {viewMode === 'PENDING' ? 'Review' : 'Details'} <ChevronRight size={14} className="ml-1" />
                                             </Button>
