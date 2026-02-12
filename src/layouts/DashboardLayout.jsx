@@ -191,7 +191,6 @@ const DashboardLayout = () => {
                                 title="Inbox"
                             >
                                 <MessageCircle size={20} />
-                                {/* Optional: Add a small red dot if you have unread messages logic here */}
                             </button>
                         )}
 

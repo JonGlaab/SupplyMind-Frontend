@@ -14,8 +14,6 @@ import { Loader2, ShieldCheck } from "lucide-react";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-<<<<<<< Updated upstream
-=======
 //export function PaymentsPage() {
 //  const paymentId = 123; // get this from your backend / payment record
 //  const poId = 45;
@@ -29,7 +27,6 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 //
 // }
 
->>>>>>> Stashed changes
 export default function StripePayPage() {
   const { poId } = useParams();
   const navigate = useNavigate();

@@ -73,10 +73,10 @@ export default function NotificationBell() {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
                 <button
                     className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative"
-                    onClick={() => setIsOpen(!isOpen)}
+                    // onClick={() => setIsOpen(!isOpen)}  <-- REMOVE THIS LINE
                 >
                     <Bell size={20} />
                     {unreadCount > 0 && (
