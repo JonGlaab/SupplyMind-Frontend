@@ -40,6 +40,11 @@ import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 import PurchaseOrderApproval from "./pages/manager/PurchaseOrderApproval.jsx";
 
+import SuppliersPage from "./pages/SuppliersPage";
+import FinanceDashboard from "./pages/FinanceDashboard";
+import "./api/axiosConfig";
+
+
 const StripePayPage = lazy(() => import('./pages/StripePayPage'));
 
 const App = () => {
@@ -115,6 +120,9 @@ const App = () => {
                 <Route path="setup" element={<MobileSetup />} />
                 <Route path="qr-login" element={<MobileQRLogin />} />
             </Route>
+
+            <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/finance" element={<FinanceDashboard />} />
 
             <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
         </Routes>
