@@ -36,7 +36,7 @@ export default function NotificationBell() {
         loadNotifications();
         const interval = setInterval(loadNotifications, 60000);
         return () => clearInterval(interval);
-    }, [isOpen]); // Reload when menu opens
+    }, []); // Reload when menu opens
 
     // 3. Handle Click
     const handleItemClick = async (n) => {
@@ -72,7 +72,7 @@ export default function NotificationBell() {
     };
 
     return (
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={(open) => setIsOpen(open)}>
             <DropdownMenuTrigger asChild>
                 <button
                     className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative"
