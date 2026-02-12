@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import api from '../../services/api';
-import { Button } from '../../components/ui/button';
-import { Textarea } from '../../components/ui/textarea';
+import api from '../../../services/api.js';
+import { Button } from '../../../components/ui/button.jsx';
+import { Textarea } from '../../../components/ui/textarea.jsx';
 
 const ReturnRequestApprovalModal = ({ isOpen, onClose, onSuccess, returnId }) => {
     const [isLoading, setIsLoading] = useState(false);

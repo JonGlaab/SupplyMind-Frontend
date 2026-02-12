@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import api from '../../services/api';
-import { Button } from '../../components/ui/button';
+import api from '../../../services/api.js';
+import { Button } from '../../../components/ui/button.jsx';
 
 const PurchaseOrderApprovalModal = ({ isOpen, onClose, onSuccess, poId }) => {
     const [isLoading, setIsLoading] = useState(false);

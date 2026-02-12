@@ -44,16 +44,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
+    background: transparent !important;
 }
 
 .login-logo {
-    height: clamp(140px, 18vh, 200px);
-    width: auto;
-    object-fit: contain;
-    background: none;
-    box-shadow: none;
-    border: none;
+  height: clamp(180px, 22vh, 260px);  /* bigger */
+  width: auto;
+  object-fit: contain;
+
+  display: block;
+
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
 }
 
 

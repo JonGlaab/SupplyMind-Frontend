@@ -58,6 +58,7 @@ export default function NotificationBell() {
 
     // 5. Handle Click
     const handleItemClick = async (n) => {
+        // A. Mark as read immediately in UI
         if (!n.isRead) {
             setUnreadCount(prev => Math.max(0, prev - 1));
             await NotificationService.markAsRead(n.id);

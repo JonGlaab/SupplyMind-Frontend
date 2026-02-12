@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import api from '../../services/api';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
+import api from '../../../services/api.js';
+import { Button } from '../../../components/ui/button.jsx';
+import { Input } from '../../../components/ui/input.jsx';
 
 const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({

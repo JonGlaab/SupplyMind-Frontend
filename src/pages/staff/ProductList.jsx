@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import api from '../../services/api';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import ProductDetailsModal from './ProductDetailsModal';
-import AddProductModal from './AddProductModal';
+import api from '../../services/api.js';
+import { Button } from '../../components/ui/button.jsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
+import { Badge } from '../../components/ui/badge.jsx';
+import ProductDetailsModal from './ProductDetailsModal.jsx';
+import AddProductModal from '../procurementofficer/components/AddProductModal.jsx';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
