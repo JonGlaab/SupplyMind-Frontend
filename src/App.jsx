@@ -40,10 +40,16 @@ import MobileSetup from './mobile/MobileSetup.jsx';
 import MobileHome from './mobile/MobileHome.jsx';
 import MobileQRLogin from "./mobile/MobileQRLogin.jsx";
 import PurchaseOrderApproval from "./pages/manager/PurchaseOrderApproval.jsx";
+import MobileReceivingManifest from './mobile/MobileReceivingManifest.jsx';
+import MobileProductDetail from "./mobile/MobileProductDetail.jsx";
+import MobileManualLookup from "./mobile/MobileManualLookup.jsx";
+import MobileReturnRequest from './mobile/MobileReturnRequest';
 
 import SuppliersPage from "./pages/SuppliersPage";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import "./api/axiosConfig";
+
+
 
 
 const StripePayPage = lazy(() => import('./pages/StripePayPage'));
@@ -52,11 +58,11 @@ const App = () => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
     const isAuthenticated = !!token;
-    const isMobileDevice = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     const getRedirectPath = () => {
-        if (!isAuthenticated) return "/login";
         if (isMobileDevice) return "/mobile/home";
+        if (!isAuthenticated) return "/login";
         switch (userRole) {
             case 'ADMIN': return "/admin/dashboard";
             case 'MANAGER': return "/manager/dashboard";
@@ -120,6 +126,10 @@ const App = () => {
                 <Route path="home" element={<MobileHome />} />
                 <Route path="setup" element={<MobileSetup />} />
                 <Route path="qr-login" element={<MobileQRLogin />} />
+                <Route path="process/:poId" element={<MobileReceivingManifest />} />
+                <Route path="product/:productId" element={<MobileProductDetail />} />
+                <Route path="manual-lookup" element={<MobileManualLookup />} />
+                <Route path="return-request" element={<MobileReturnRequest />} />
             </Route>
 
             <Route path="/suppliers" element={<SuppliersPage />} />

@@ -1,92 +1,186 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, Package, UploadCloud, LogOut, CheckCircle } from 'lucide-react';
+import { Monitor, Scan, LogOut, ScanQrCode, Keyboard, AlertTriangle, Package, FileText } from 'lucide-react';
+import QRScanner from '../components/QRScanner';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const MobileHome = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
+    const [showScanner, setShowScanner] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [scanStatus, setScanStatus] = useState('');
+    const [ambiguousData, setAmbiguousData] = useState(null);
+
+    const handleSmartScan = async (code) => {
+        setIsProcessing(true);
+        setScanStatus('Analyzing code...');
+
+        try {
+            const res = await api.get(`/api/mobile/scan/analyze?code=${code}`);
+            const { scanType, poId, productId } = res.data;
+
+            if (scanType === 'PO') {
+                navigate(`/mobile/process/${poId}`);
+            } else if (scanType === 'PRODUCT') {
+                // Navigate to product view (to be built)
+                navigate(`/mobile/product/${productId}`);
+            } else if (scanType === 'AMBIGUOUS') {
+                setAmbiguousData(res.data);
+                setShowScanner(false);
+            } else {
+                toast.error("Unknown barcode. Try manual entry.");
+                setShowScanner(false);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Analysis failed. Check connection.");
+            setShowScanner(false);
+        } finally {
+            setIsProcessing(false);
+            setScanStatus('');
+        }
+    };
+
     if (!token) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
-                <div className="p-4 bg-slate-800 rounded-full text-slate-400">
-                    <Monitor size={32} />
+            <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-slate-950">
+                <div className="p-4 bg-slate-900 rounded-full text-slate-500 mb-4">
+                    <Monitor size={48} />
                 </div>
                 <h2 className="text-xl font-bold text-white">Device Not Linked</h2>
+                <p className="text-slate-400 mt-2 mb-6">Scan the setup QR code on your desktop to link this device.</p>
                 <button
                     onClick={() => navigate('/mobile/setup')}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold shadow-lg"
+                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
                 >
-                    Go to Setup
+                    Link Now
                 </button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 pb-24">
+        <div className="flex flex-col h-full bg-slate-950 p-6 space-y-6">
 
-
+            {/* HEADER */}
             <header className="flex justify-between items-center py-2">
                 <div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard</h1>
-                    <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Mobile Companion</p>
+                    <h1 className="text-2xl font-black text-white tracking-tight">SupplyMind</h1>
+                    <div className="flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Warehouse Ops</p>
+                    </div>
                 </div>
-                <div className="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span>ONLINE</span>
-                </div>
+                <button
+                    onClick={() => navigate('/mobile/qr-login')}
+                    className="p-3 bg-slate-900 text-blue-400 rounded-2xl border border-slate-800 active:bg-slate-800"
+                >
+                    <ScanQrCode size={20} />
+                </button>
             </header>
 
-
-            <button
-                onClick={() => navigate('/mobile/qr-login')}
-                className="w-full relative overflow-hidden group bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 rounded-3xl shadow-xl shadow-blue-900/20 active:scale-95 transition-all duration-200 text-left"
-            >
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Monitor size={120} />
-                </div>
-
-                <div className="relative z-10 flex flex-col items-start gap-4">
-                    <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
-                        <Monitor size={32} />
+            {/* MAIN SCAN BUTTON */}
+            <div className="flex-1 flex flex-col justify-center">
+                <button
+                    onClick={() => setShowScanner(true)}
+                    className="w-full aspect-square bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] shadow-2xl shadow-blue-900/40 flex flex-col items-center justify-center gap-6 active:scale-95 transition-all relative overflow-hidden group"
+                >
+                    <div className="absolute inset-0 bg-white/5 opacity-0 group-active:opacity-100 transition-opacity" />
+                    <div className="p-6 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 shadow-inner">
+                        <Scan size={64} className="text-white" strokeWidth={2.5} />
                     </div>
-                    <div>
-                        <h2 className="text-2xl font-bold">Unlock Desktop</h2>
-                        <p className="text-blue-100 text-sm font-medium opacity-80 mt-1">Scan QR code to login</p>
+                    <div className="text-center px-6">
+                        <h2 className="text-3xl font-black text-white">SMART SCAN</h2>
+                        <p className="text-blue-100/70 text-sm mt-1 font-medium italic">PO Manifest or Product SKU</p>
                     </div>
-                </div>
-            </button>
-
-
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 p-5 rounded-3xl border border-slate-800 flex flex-col gap-3 items-start opacity-50 grayscale">
-                    <div className="p-2 bg-slate-800 rounded-xl">
-                        <Package size={24} className="text-slate-400" />
-                    </div>
-                    <span className="font-semibold text-slate-300 text-sm">Scan SKU</span>
-                </div>
-
-                <div className="bg-slate-900/50 p-5 rounded-3xl border border-slate-800 flex flex-col gap-3 items-start opacity-50 grayscale">
-                    <div className="p-2 bg-slate-800 rounded-xl">
-                        <UploadCloud size={24} className="text-slate-400" />
-                    </div>
-                    <span className="font-semibold text-slate-300 text-sm">Upload PO</span>
-                </div>
+                </button>
             </div>
 
-            <button
-                onClick={() => {
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                }}
-                className="w-full p-4 rounded-2xl border border-red-900/30 bg-red-950/10 text-red-400 font-semibold text-sm flex items-center justify-center gap-2 active:bg-red-950/30 transition-colors"
-            >
-                <LogOut size={16} />
-                <span>Unlink Device</span>
-            </button>
+            {/* SECONDARY ACTIONS */}
+            <div className="grid grid-cols-1 gap-4">
+                <button
+                    onClick={() => navigate('/mobile/manual-lookup')}
+                    className="w-full p-5 bg-slate-900 rounded-3xl border border-slate-800 flex items-center justify-center gap-3 text-slate-300 font-bold active:bg-slate-800 transition-colors"
+                >
+                    <Keyboard size={20} className="text-slate-500" />
+                    Manual Entry
+                </button>
+
+                <button
+                    onClick={() => {
+                        localStorage.clear();
+                        navigate('/login');
+                    }}
+                    className="w-full p-4 text-slate-600 text-sm font-bold flex items-center justify-center gap-2"
+                >
+                    <LogOut size={16} />
+                    Unlink Device
+                </button>
+            </div>
+
+            {/* ---  AMBIGUITY MODAL --- */}
+            {ambiguousData && (
+                <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+                    <div className="bg-slate-900 border border-slate-800 w-full rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white text-center mb-2">Ambiguous Scan</h3>
+                        <p className="text-slate-400 text-center text-sm mb-8 leading-relaxed">
+                            This code matches both a Purchase Order and a Product. Which one did you scan?
+                        </p>
+
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => navigate(`/mobile/process/${ambiguousData.poId}`)}
+                                className="w-full p-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-blue-500"
+                            >
+                                <div className="p-2 bg-white/10 rounded-lg"><FileText size={20}/></div>
+                                <div className="text-left">
+                                    <span className="block text-xs opacity-70 uppercase">Handle as</span>
+                                    Purchase Order
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => navigate(`/mobile/product/${ambiguousData.productId}`)}
+                                className="w-full p-4 bg-slate-800 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-slate-700"
+                            >
+                                <div className="p-2 bg-white/10 rounded-lg"><Package size={20}/></div>
+                                <div className="text-left">
+                                    <span className="block text-xs opacity-70 uppercase">Handle as</span>
+                                    Product SKU
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setAmbiguousData(null)}
+                                className="w-full p-4 text-slate-500 text-sm font-bold"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SCANNER OVERLAY */}
+            {showScanner && (
+                <QRScanner
+                    onScan={handleSmartScan}
+                    title="Smart Scan"
+                    instruction="Point at PO or Product"
+                    status={scanStatus}
+                    isProcessing={isProcessing}
+                    onCancel={() => setShowScanner(false)}
+                />
+            )}
         </div>
     );
 };

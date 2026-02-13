@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import DesktopLoginQR from '../components/DesktopLoginQR.jsx';
@@ -28,6 +28,19 @@ const Login = () => {
 
     const navigate = useNavigate();
 
+    // 1. Define Helper First
+    const isMobileDevice = () => {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
+    };
+
+    useEffect(() => {
+        if (isMobileDevice()) {
+            navigate('/mobile/home');
+        }
+    }, [navigate]);
+
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -35,13 +48,6 @@ const Login = () => {
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-
-    const isMobileDevice = () => {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        );
-    };
 
 
     const handleSubmit = async (e) => {
@@ -67,6 +73,7 @@ const Login = () => {
                 return;
             }
 
+            // Fallback check (mostly for desktop responsiveness testing)
             const isMobile = isMobileDevice();
 
             if (
@@ -123,11 +130,11 @@ const Login = () => {
             {/* LOGO BIG CENTER */}
             <div className="login-logo-wrapper relative z-10">
 
-             <img
-                 src="/images/supplymind-logo.png"
-                 alt="SupplyMind Logo"
-                 className="login-logo"
-            />
+                <img
+                    src="/images/supplymind-logo.png"
+                    alt="SupplyMind Logo"
+                    className="login-logo"
+                />
 
             </div>
 
@@ -281,8 +288,6 @@ const Login = () => {
 
                     </div>
 
-
-                    {/* TEXT UNDER QR */}
                     <p className="mt-6 text-xs text-slate-500 text-center uppercase tracking-widest">
 
                         Secure Handshake Active

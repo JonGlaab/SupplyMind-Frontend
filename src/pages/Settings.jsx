@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { User, Mail, Shield, Loader2, PenTool, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
+import { uploadFile } from '../services/storage.service';
 
 const Settings = () => {
     const [user, setUser] = useState(null);
@@ -53,58 +54,19 @@ const Settings = () => {
     const uploadSignature = async (file) => {
         if (!user) return;
         setUploading(true);
-
         try {
-            // --- 1. Prepare Metadata ---
-            const cleanFirstName = (user.firstName || '').trim().replace(/\s+/g, '_');
-            const cleanLastName = (user.lastName || '').trim().replace(/\s+/g, '_');
-            const fullName = `${cleanFirstName}_${cleanLastName}`;
-
-            const fileExtension = file.name.split('.').pop();
-            const specificFileName = `${fullName}_signature.${fileExtension}`;
-
-            // --- 2. Request Upload URL (Presigned PUT) ---
-            const presignRes = await api.post('/api/storage/presign-put', {
-                fileName: specificFileName,
-                contentType: file.type,
-                category: fullName,
-                ownerId: user.id
-            });
-
-            const uploadUrl = presignRes.data.putUrl || presignRes.data.uploadUrl;
-            const objectKey = presignRes.data.objectKey || presignRes.data.key;
-
-            if (!uploadUrl) throw new Error("Backend did not return an upload URL");
-
-            // --- 3. Upload to Storage (Backblaze/S3) ---
-            const uploadRes = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type
-                }
-            });
-
-            if (!uploadRes.ok) throw new Error('Failed to upload image to storage provider');
-
-            // --- 4. Get Viewable URL (Presigned GET) ---
-            const getRes = await api.get('/api/storage/presign-get', {
-                params: { objectKey }
-            });
-
-
-            const publicUrl = typeof getRes.data === 'string' ? getRes.data : Object.values(getRes.data)[0];
-
-            // --- 5. Save to Profile ---
-            await api.put('/api/auth/me/signature', { signatureUrl: publicUrl });
-
-            // --- 6. Update UI ---
-            setSignatureUrl(publicUrl);
-            setUser(prev => ({ ...prev, signatureUrl: publicUrl }));
-
+            const cleanName = `${user.firstName}_${user.lastName}`.trim().replace(/\s+/g, '_');
+            const result = await uploadFile(
+                file,
+                cleanName,
+                user.id,
+                `${cleanName}_signature.${file.name.split('.').pop()}`
+            );
+            await api.put('/api/auth/me/signature', { signatureUrl: result.url });
+            setSignatureUrl(result.url);
+            setUser(prev => ({ ...prev, signatureUrl: result.url }));
         } catch (error) {
-            console.error("Upload failed", error);
-            alert("Failed to upload signature. Please try again.");
+            alert("Failed to upload signature.");
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
