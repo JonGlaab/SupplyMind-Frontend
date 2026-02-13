@@ -9,20 +9,23 @@ import {
     AlertTriangle, Loader2, Search
 } from 'lucide-react';
 import { Input } from '../../components/ui/input.jsx';
+import InventoryTransferModal from './components/InventoryTransferModal.jsx';
 
 const WarehouseInventory = () => {
     const { warehouseId } = useParams();
-    const [warehouse, setWarehouse] = useState(null);
-    const location = useLocation();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
 
+    const [warehouse, setWarehouse] = useState(null);
     const [inventory, setInventory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const warehouseName = location.state?.name || "Warehouse";
-
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+
+    const warehouseName = location.state?.name || "Warehouse";
 
     useEffect(() => {
         const fetchWarehouse = async () => {
@@ -35,6 +38,11 @@ const WarehouseInventory = () => {
         };
         fetchWarehouse();
     }, [warehouseId]);
+
+    const handleOpenTransfer = (item) => {
+        setSelectedItem(item);
+        setIsModalOpen(true);
+    };
 
     const fetchInventory = async () => {
         try {
@@ -60,6 +68,7 @@ const WarehouseInventory = () => {
     }, [warehouseId, page]);
 
     return (
+        <>
         <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -97,6 +106,7 @@ const WarehouseInventory = () => {
                             <th className="px-6 py-4">Product Details</th>
                             <th className="px-6 py-4 text-center">Current Stock</th>
                             <th className="px-6 py-4">Last Updated</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
                             <th className="px-6 py-4 text-right">Status</th>
                         </tr>
                         </thead>
@@ -130,6 +140,16 @@ const WarehouseInventory = () => {
                                             {new Date(item.updatedAt).toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 text-right">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                onClick={() => handleOpenTransfer(item)}
+                                            >
+                                                <Package size={14} className="mr-1" /> Transfer
+                                            </Button>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
                                             {item.qtyOnHand < 10 ? (
                                                 <Badge className="bg-red-50 text-red-700 border-red-100">
                                                     <AlertTriangle size={12} className="mr-1" /> Low Stock
@@ -152,9 +172,9 @@ const WarehouseInventory = () => {
                         >
                             Previous
                         </Button>
-                        <span className="text-sm text-slate-500">
-        Page {page + 1} of {totalPages}
-    </span>
+                            <span className="text-sm text-slate-500">
+                                Page {page + 1} of {totalPages}
+                            </span>
                         <Button
                             disabled={page >= totalPages - 1}
                             onClick={() => setPage(prev => prev + 1)}
@@ -165,6 +185,15 @@ const WarehouseInventory = () => {
                 </CardContent>
             </Card>
         </div>
+        <InventoryTransferModal
+            isOpen={isModalOpen}
+            setIsOpen={setIsModalOpen}
+            selectedItem={selectedItem}
+            fromWarehouseId={warehouseId}
+            fromWarehouseName={warehouse?.locationName}
+            onComplete={fetchInventory}
+        />
+    </>
     );
 };
 

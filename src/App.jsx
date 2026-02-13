@@ -28,6 +28,7 @@ import WarehouseInventory from "./pages/staff/WarehouseInventory.jsx";
 import WarehouseTransferHistory from "./pages/staff/WarehouseTransferHistory.jsx";
 import WarehousePOsHistory from "./pages/staff/WarehouseOrdersReceived.jsx";
 import WarehouseDashboard from "./pages/staff/WarehouseDashboard.jsx";
+import InventoryTransferModal from "./pages/staff/components/InventoryTransferModal.jsx";
 
 // Returns & PO Shared
 import PurchaseOrderView from "./pages/shared/PurchaseOrder.jsx";
@@ -84,6 +85,7 @@ const App = () => {
                 <Route path="staff/dashboard" element={<WarehouseDashboard />} />
                 <Route path="staff/receiving" element={<Receiving />} />
                 <Route path="staff/returnrequest" element={<ReturnRequest />} />
+                <Route path="staff/:warehouseId/transfer" element={< InventoryTransferModal />} />
                 <Route path="staff/return-request/:poId" element={<ReturnRequest />} />
                 <Route path="staff/transfer" element={<div className="p-8">Internal Transfer Page (Coming Soon)</div>} />
                 <Route path="staff/:warehouseId/transferhistory" element={<WarehouseTransferHistory />} />
