@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from '../../components/ui/dialog.jsx';
 import { Badge } from '../../components/ui/badge.jsx';
 import { Package, ArrowRight } from 'lucide-react';
@@ -30,6 +31,9 @@ const ViewProcessedOrderModal = ({ order, isOpen, onClose }) => {
           <DialogTitle>
             PO #{order.poId} - {order.supplierName}
           </DialogTitle>
+          <DialogDescription>
+            This is a summary of the items received for this purchase order.
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <div className="bg-slate-50 rounded-lg p-4">
