@@ -91,6 +91,10 @@ const Login = () => {
                     navigate('/procurement/dashboard');
                     break;
 
+                case 'STAFF':
+                    navigate('/staff/dashboard');
+                    break;
+
                 default:
                     navigate('/warehouse/dashboard');
             }

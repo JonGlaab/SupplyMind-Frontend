@@ -102,7 +102,7 @@ const WarehouseOrdersReceived = () => {
                                     <td className="p-4 text-sm">
                                         <div className="flex items-center gap-2 text-muted-foreground">
                                             <Calendar size={14} />
-                                            {order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : 'N/A'}
+                                            {order.receivedAt ? new Date(order.receivedAt).toLocaleDateString() : 'N/A'}
                                         </div>
                                     </td>
                                     <td className="p-4 text-right">
