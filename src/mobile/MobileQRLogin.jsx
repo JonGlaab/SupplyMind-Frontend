@@ -22,7 +22,7 @@ const MobileQRLogin = () => {
         setStatus("Unlocking Desktop...");
 
         try {
-            await api.post(`/auth/qr/approve?socketId=${rawValue}`);
+            await api.post(`/api/auth/qr/approve?socketId=${rawValue}`);
 
             setStatus("✅ Success!");
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);

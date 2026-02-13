@@ -42,7 +42,7 @@ const MobileHome = () => {
 
 
             <button
-                onClick={() => navigate('/mobile/scanner')}
+                onClick={() => navigate('/mobile/qr-login')}
                 className="w-full relative overflow-hidden group bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 rounded-3xl shadow-xl shadow-blue-900/20 active:scale-95 transition-all duration-200 text-left"
             >
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">

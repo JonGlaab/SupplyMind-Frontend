@@ -23,16 +23,40 @@ const DesktopLoginQR = () => {
         const client = Stomp.over(() => new SockJS(socketUrl));
 
         // Disable debug logs for cleaner console
-        client.debug = () => {};
+        client.debug = (str) => {
+            console.log(str);
+        };
 
-        // Optional: Tweak heartbeat if connection drops frequently
+        client.connect({}, () => {
+            console.log("🟢 WebSocket Connected");
+            setStatus('ready');
+
+            console.log(`📡 Subscribing to: /topic/login/${newSocketId}`);
+
+            client.subscribe(`/topic/login/${newSocketId}`, (message) => {
+                console.log("📩 Message Received:", message.body);
+
+                const body = JSON.parse(message.body);
+
+                if (body.token) {
+                    console.log("✅ Token found! Logging in...");
+                    setStatus('success');
+                    localStorage.setItem('token', body.token);
+                    setTimeout(() => navigate('/dashboard'), 1500);
+                }
+            });
+        }, (err) => {
+            console.error("🔴 WebSocket Error:", err);
+            setStatus('error');
+        });
+
+
         client.heartbeat.outgoing = 20000;
         client.heartbeat.incoming = 0;
 
         client.connect({}, () => {
             console.log("🟢 WebSocket Connected");
             setStatus('ready');
-
             client.subscribe(`/topic/login/${newSocketId}`, (message) => {
                 const body = JSON.parse(message.body);
 
@@ -40,14 +64,34 @@ const DesktopLoginQR = () => {
                     console.log("✅ Login Approved!");
                     setStatus('success');
 
+                    // 1. SAVE THE DATA
                     localStorage.setItem('token', body.token);
+                    localStorage.setItem('userRole', body.role); // <--- Critical Fix
+                    localStorage.setItem('userName', `${body.firstName} ${body.lastName}`);
 
-                    setTimeout(() => navigate('/dashboard'), 1500);
+                    // 2. REDIRECT TO THE CORRECT DASHBOARD (Copied from Login.jsx)
+                    setTimeout(() => {
+                        switch (body.role) {
+                            case 'ADMIN':
+                                navigate('/admin/dashboard');
+                                break;
+                            case 'MANAGER':
+                                navigate('/manager/dashboard');
+                                break;
+                            case 'PROCUREMENT_OFFICER':
+                                navigate('/procurement/dashboard');
+                                break;
+                            case 'STAFF':
+                                navigate('/staff/dashboard');
+                                break;
+                            default:
+                                navigate('/warehouse/dashboard');
+                        }
+                    }, 1500);
                 }
             });
         }, (err) => {
             console.error("🔴 WebSocket Error:", err);
-            // Only set error status if we aren't already successful
             if (status !== 'success') {
                 setStatus('error');
             }
