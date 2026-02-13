@@ -17,6 +17,8 @@ const WarehouseList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     const userRole = localStorage.getItem('userRole');
 
@@ -28,13 +30,20 @@ const WarehouseList = () => {
     });
 
     useEffect(() => {
-        fetchWarehouses();
-    }, []);
+        fetchWarehouses(page);
+    }, [page]);
 
-    const fetchWarehouses = async () => {
+    const fetchWarehouses = async (currentPage) => {
         try {
-            const res = await api.get('/api/core/warehouses');
+            setLoading(true);
+            const res = await api.get('/api/core/warehouses', {
+                params: {
+                    page: currentPage,
+                    size: 10,
+                }
+            });
             setWarehouses(res.data.content || []);
+            setTotalPages(res.data.totalPages);
             setLoading(false);
         } catch (err) {
             console.error("Failed to fetch warehouses", err);
@@ -50,7 +59,7 @@ const WarehouseList = () => {
             await api.post('/api/core/warehouses', payload);
             setIsAdding(false);
             setFormData({ locationName: '', address: '', capacity: '' });
-            fetchWarehouses();
+            fetchWarehouses(page);
         } catch (err) {
             alert("Error: Ensure Location Name is provided and Capacity is a number.");
         }
@@ -191,6 +200,23 @@ const WarehouseList = () => {
                         </tbody>
                     </table>
                 </CardContent>
+                <div className="flex justify-between items-center p-4 border-t">
+                    <Button
+                        disabled={page === 0}
+                        onClick={() => setPage(prev => prev - 1)}
+                    >
+                        Previous
+                    </Button>
+                        <span className="text-sm text-slate-500">
+                            Page {page + 1} of {totalPages}
+                        </span>
+                    <Button
+                        disabled={page >= totalPages - 1}
+                        onClick={() => setPage(prev => prev + 1)}
+                    >
+                        Next
+                    </Button>
+                </div>
             </Card>
         </div>
     );

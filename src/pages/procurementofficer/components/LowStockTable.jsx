@@ -28,8 +28,8 @@ export function LowStockTable({ onPoChange }) {
     const fetchInitialData = async () => {
         try {
             const [warehouseRes, supplierRes] = await Promise.all([
-                api.get('/api/core/warehouses'),
-                api.get('/api/core/suppliers')
+                api.get('/api/core/warehouses', { params: { size: 200 } }),
+                api.get('/api/core/suppliers', { params: { size: 200 } })
             ]);
             setWarehouses(warehouseRes.data.content || []);
             setSuppliers(supplierRes.data.content || []);
@@ -105,23 +105,27 @@ export function LowStockTable({ onPoChange }) {
                             <TableRow>
                                 <TableHead>Product</TableHead>
                                 <TableHead>Warehouse</TableHead>
+                                <TableHead>Supplier</TableHead>
                                 <TableHead>Current Qty</TableHead>
                                 <TableHead>Min. Qty</TableHead>
+                                <TableHead>Max. Qty</TableHead>
                                 <TableHead>Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow><TableCell colSpan="5" className="text-center">Loading...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan="7" className="text-center">Loading...</TableCell></TableRow>
                             ) : lowStockItems.length === 0 ? (
-                                <TableRow><TableCell colSpan="5" className="text-center">No low stock items.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan="7" className="text-center">No low stock items.</TableCell></TableRow>
                             ) : (
                                 lowStockItems.map(item => (
                                     <TableRow key={item.inventoryId}>
                                         <TableCell>{item.productName}</TableCell>
                                         <TableCell>{item.warehouseName}</TableCell>
+                                        <TableCell>{item.supplierName || 'N/A'}</TableCell>
                                         <TableCell className="text-red-600 font-bold">{item.qtyOnHand}</TableCell>
                                         <TableCell>{item.reorderPoint}</TableCell>
+                                        <TableCell>{item.maxStockLevel}</TableCell>
                                         <TableCell>
                                             <Button size="sm" onClick={() => handleAddToPO(item)}>
                                                 <PlusCircle size={16} className="mr-2" />

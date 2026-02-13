@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Camera, X, RefreshCw, Check, UploadCloud } from 'lucide-react';
-import { uploadFile } from '../services/StorageService';
+import { uploadFile } from '../services/storage.service';
 import toast from 'react-hot-toast';
 
 const PhotoCapture = ({ poId, itemId, onCapture, onCancel }) => {
