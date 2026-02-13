@@ -55,12 +55,18 @@ const WarehouseDashboard = () => {
             path: `/staff/${selectedWhId}/receiving-history`,
             color: "bg-emerald-50"
         },
-
         {
-            title: "Transaction History",
+            title: "Transfer History",
             description: `Audit logs for this site`,
             icon: <ClipboardList size={24} className="text-slate-600" />,
-            path: `/staff/${selectedWhId}/transfers`,
+            path: `/staff/${selectedWhId}/transferhistory`,
+            color: "bg-slate-50"
+        },
+        {
+            title: "Warehouse Network",
+            description: `Check inventory at selected warehouse`,
+            icon: <ClipboardList size={24} className="text-slate-600" />,
+            path: `/staff/${selectedWhId}/inventory`,
             color: "bg-slate-50"
         }
     ];

@@ -12,6 +12,7 @@ import { Input } from '../../components/ui/input.jsx';
 
 const WarehouseInventory = () => {
     const { warehouseId } = useParams();
+    const [warehouse, setWarehouse] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -20,8 +21,20 @@ const WarehouseInventory = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const warehouseName = location.state?.name || "Warehouse";
 
-    const [page, setPage] = useState(0); // Spring Boot starts pages at 0
+    const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+
+    useEffect(() => {
+        const fetchWarehouse = async () => {
+            try {
+                const res = await api.get(`/api/core/warehouses/${warehouseId}`);
+                setWarehouse(res.data);
+            } catch (err) {
+                console.error("Failed to load warehouse name", err);
+            }
+        };
+        fetchWarehouse();
+    }, [warehouseId]);
 
     const fetchInventory = async () => {
         try {
@@ -54,15 +67,15 @@ const WarehouseInventory = () => {
                         <ArrowLeft size={20} />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold">{warehouseName} - Inventory</h1>
+                        <h1 className="text-2xl font-bold">{warehouse ? `${warehouse.locationName} - Inventory` : "Loading..."}</h1>
                         <p className="text-sm text-slate-500">Real-time stock levels for this facility</p>
                     </div>
                 </div>
                 <Button
                     variant="outline"
-                    onClick={() => navigate(`/warehouses/${warehouseId}/transactions`)}
+                    onClick={() => navigate(`/staff/${warehouseId}/transferhistory`)}
                 >
-                    <History size={16} className="mr-2" /> View Transaction Log
+                    <History size={16} className="mr-2" /> View Transfer Log
                 </Button>
             </div>
 

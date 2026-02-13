@@ -175,7 +175,7 @@ const WarehouseList = () => {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => navigate(`/warehouses/${w.warehouseId}/inventory`, { state: { name: w.locationName } })}
+                                                    onClick={() => navigate(`/staff/${w.warehouseId}/inventory`, { state: { name: w.locationName } })}
                                                     className="text-blue-600 border-blue-200 hover:bg-blue-50"
                                                 >
                                                     <BarChart3 size={16} className="mr-2" /> View Stock

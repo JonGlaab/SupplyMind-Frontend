@@ -43,7 +43,16 @@ const ReturnRequest = () => {
             const res = await api.get(`/api/core/purchase-orders/${formData.poId}`);
             const po = res.data;
 
-            if (po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'RECEIVED') {
+            const dupRes = await api.get(`/api/core/returns/by-po/${formData.poId}`);
+            const activeReturns = dupRes.data.filter(r =>
+                !['REJECTED', 'CANCELLED'].includes(r.status)
+            );
+
+            if (activeReturns.length > 0) {
+                setPoError(`A return request (ID: ${activeReturns[0].id}) is already in progress for this PO. 
+                Multiple active returns are not permitted at this time.`);
+                setPoVerified(false);
+            } else if (po.status !== 'COMPLETED' && po.status !== 'DELIVERED' && po.status !== 'RECEIVED') {
                 setPoError(`PO status is ${po.status}. Only completed orders can be returned.`);
                 setPoVerified(false);
             } else {
@@ -93,8 +102,6 @@ const ReturnRequest = () => {
             return hasId && hasQty && !err;
         });
 
-    console.log("Can Submit?", { poVerified, reason: formData.reason.length, items: formData.items.length, canSubmit });
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!canSubmit) {
@@ -120,7 +127,6 @@ const ReturnRequest = () => {
             const serverData = err.response?.data;
             console.error("Raw Error from Server:", serverData);
 
-            // Ensure we only set a STRING to state, never the whole object
             const errorMessage = typeof serverData === 'object'
                 ? (serverData.message || serverData.error || "Internal Server Error")
                 : "Submission failed.";
@@ -200,7 +206,7 @@ const ReturnRequest = () => {
                                             <option value="">-- Select Item --</option>
                                             {availableItems.map(p => (
                                                 <option key={p.poItemId || p.id} value={p.poItemId || p.id}>
-                                                    {p.productName} (Available: {p.receivedQty || p.receivedQtyOnPo || p.quantity || 0})
+                                                    {p.productName} (Available: {p.receivedQty || 0})
                                                 </option>
                                             ))}
                                         </select>
