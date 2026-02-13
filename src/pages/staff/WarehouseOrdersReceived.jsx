@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Badge } from '../../components/ui/badge.jsx';
 import { Input } from '../../components/ui/input.jsx';
 import { ArrowLeft, Search, FileText, Calendar, CheckCircle } from 'lucide-react';
+import ViewProcessedOrderModal from './ViewProcessedOrderModal.jsx';
 
 const WarehouseOrdersReceived = () => {
     const { warehouseId } = useParams();
@@ -14,16 +15,17 @@ const WarehouseOrdersReceived = () => {
     const [orders, setOrders] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchHistory = async () => {
             try {
                 setLoading(true);
-                // Fetching orders for this warehouse that are already COMPLETED
                 const res = await api.get('/api/core/purchase-orders', {
                     params: {
                         warehouseId,
-                        status: 'COMPLETED' // Adjust based on your actual "Finished" status string
+                        status: 'COMPLETED'
                     }
                 });
                 setOrders(res.data.content || res.data || []);
@@ -36,6 +38,16 @@ const WarehouseOrdersReceived = () => {
 
         fetchHistory();
     }, [warehouseId]);
+
+    const handleOpenModal = (order) => {
+        setSelectedOrder(order);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedOrder(null);
+    };
 
     const filteredOrders = orders.filter(order =>
         order.poId?.toString().includes(searchTerm) ||
@@ -109,7 +121,7 @@ const WarehouseOrdersReceived = () => {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => navigate(`/receiving/summary/${order.poId}`)}
+                                            onClick={() => handleOpenModal(order)}
                                         >
                                             <FileText size={16} className="mr-2" /> Details
                                         </Button>
@@ -121,6 +133,11 @@ const WarehouseOrdersReceived = () => {
                     </table>
                 </CardContent>
             </Card>
+            <ViewProcessedOrderModal
+                order={selectedOrder}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };

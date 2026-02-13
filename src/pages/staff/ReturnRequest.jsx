@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import { Button } from '../../components/ui/button.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
@@ -12,13 +12,14 @@ import {
 
 const ReturnRequest = () => {
     const navigate = useNavigate();
+    const { poId: poIdFromUrl } = useParams();
     const [loading, setLoading] = useState(false);
     const [poVerified, setPoVerified] = useState(false);
     const [poError, setPoError] = useState('');
     const [availableItems, setAvailableItems] = useState([]);
 
     const [formData, setFormData] = useState({
-        poId: '',
+        poId: poIdFromUrl || '',
         reason: '',
         items: [{ poItemId: '', qtyReturnRequested: 0, conditionNotes: '' }]
     });

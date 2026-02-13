@@ -84,6 +84,7 @@ const App = () => {
                 <Route path="staff/dashboard" element={<WarehouseDashboard />} />
                 <Route path="staff/receiving" element={<Receiving />} />
                 <Route path="staff/returnrequest" element={<ReturnRequest />} />
+                <Route path="staff/return-request/:poId" element={<ReturnRequest />} />
                 <Route path="staff/transfer" element={<div className="p-8">Internal Transfer Page (Coming Soon)</div>} />
                 <Route path="staff/:warehouseId/transferhistory" element={<WarehouseTransferHistory />} />
                 <Route path="staff/:warehouseId/receiving-history" element={<WarehousePOsHistory />} />
