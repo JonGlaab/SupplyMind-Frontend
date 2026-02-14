@@ -1,61 +1,203 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { ScanLine, Home, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import {
+    ArrowLeft,
+    Search,
+    FileText,
+    Package,
+    ChevronRight,
+    Loader2,
+    Delete,
+    CornerDownLeft
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
-const MobileLayout = () => {
+const MobileManualLookup = () => {
     const navigate = useNavigate();
-    const location = useLocation();
+    const [query, setQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [result, setResult] = useState(null);
+
+    // --- SEARCH & AUTO-NAVIGATE LOGIC ---
+    const executeSearch = async (searchTerm) => {
+        if (!searchTerm.trim()) return;
+
+        setIsSearching(true);
+        setResult(null); // Clear previous results
+
+        try {
+            const res = await api.get(`/api/mobile/scan/analyze?code=${searchTerm.trim()}`);
+            const data = res.data;
+            setResult(data);
+
+            // ✅ AUTO-NAVIGATION FIX
+            // If we found a clear match, go there immediately.
+            if (data.scanType === 'PO') {
+                navigate(`/mobile/process/${data.poId}`);
+            } else if (data.scanType === 'PRODUCT') {
+                navigate(`/mobile/product/${data.productId}`);
+            } else if (data.scanType === 'UNKNOWN') {
+                toast.error("No match found for that code");
+            }
+            // If AMBIGUOUS, we stay on this screen and let the user tap the card they want.
+
+        } catch (err) {
+            console.error(err);
+            toast.error("Search failed. Check connection.");
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleKeyPress = (key) => {
+        if (key === 'ENTER') {
+            executeSearch(query);
+            return;
+        }
+
+        if (key === 'BACKSPACE') {
+            setQuery(prev => prev.slice(0, -1));
+            return;
+        }
+
+        if (key === 'PO-' || key === 'SKU-') {
+            if (query.startsWith('PO-') || query.startsWith('SKU-')) {
+                const numberPart = query.split('-')[1] || '';
+                setQuery(key + numberPart);
+            } else {
+                setQuery(key + query);
+            }
+            return;
+        }
+
+        setQuery(prev => prev + key);
+    };
 
     return (
-        <div
-            className="fixed inset-0 w-full h-[100dvh] flex flex-col bg-slate-950 text-white overflow-hidden"
-            style={{
-                overscrollBehavior: 'none',
-                touchAction: 'manipulation'
-            }}
-        >
-            {/* Header */}
-            <header className="shrink-0 p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center z-20 shadow-md">
-                <span className="font-bold text-lg text-blue-400 tracking-tight">SupplyMind</span>
-                <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center text-xs font-bold border border-slate-700">
-                    SM
+        <div className="flex flex-col h-full bg-slate-950 text-white">
+            {/* 1. HEADER */}
+            <div className="p-4 bg-slate-900 border-b border-slate-800 shrink-0">
+                <button onClick={() => navigate('/mobile/home')} className="flex items-center gap-2 text-slate-400 mb-2">
+                    <ArrowLeft size={18} /> <span>Back</span>
+                </button>
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={query}
+                        readOnly
+                        placeholder="Select Prefix..."
+                        className="w-full bg-slate-950 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-xl font-mono tracking-wider text-white focus:outline-none focus:border-blue-500 transition-all"
+                    />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={24} />
+                    {isSearching && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <Loader2 className="animate-spin text-blue-500" />
+                        </div>
+                    )}
                 </div>
-            </header>
+            </div>
 
-            {/* Main Content Area - Added p-4 for margin/padding */}
-            <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth bg-slate-950 relative p-4 pb-24">
-                <Outlet />
-            </main>
+            {/* 2. RESULTS AREA (Only for Ambiguous matches now) */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {result && result.scanType === 'AMBIGUOUS' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-1">Multiple Matches Found</p>
 
-            {/* Bottom Navigation */}
-            <nav className="shrink-0 h-20 bg-slate-900 border-t border-slate-800 flex justify-around items-end pb-4 z-20 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.3)] fixed bottom-0 w-full">
-                <button
-                    onClick={() => navigate('/mobile/home')}
-                    className={`flex flex-col items-center w-16 transition-colors duration-200 ${location.pathname.includes('home') ? 'text-blue-400' : 'text-slate-500'}`}
-                >
-                    <Home size={22} strokeWidth={location.pathname.includes('home') ? 2.5 : 2} />
-                    <span className="text-[10px] mt-1 font-medium">Home</span>
-                </button>
+                        <button
+                            onClick={() => navigate(`/mobile/process/${result.poId}`)}
+                            className="w-full mb-3 p-5 bg-slate-900 border border-slate-800 rounded-[2rem] flex items-center gap-4 active:bg-slate-800 text-left"
+                        >
+                            <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl">
+                                <FileText size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="block text-xs text-slate-500 font-bold uppercase">Purchase Order</span>
+                                <span className="text-lg font-bold">#{result.poId}</span>
+                            </div>
+                            <ChevronRight className="text-slate-600" />
+                        </button>
 
-                {/* Floating Action Button Style */}
-                <button
-                    onClick={() => navigate('/mobile/scanner')}
-                    className="relative -top-6"
-                >
-                    <div className="bg-blue-600 p-4 rounded-full shadow-lg border-[6px] border-slate-950 active:scale-95 transition-transform">
-                        <ScanLine size={28} className="text-white" />
+                        <button
+                            onClick={() => navigate(`/mobile/product/${result.productId}`)}
+                            className="w-full p-5 bg-slate-900 border border-slate-800 rounded-[2rem] flex items-center gap-4 active:bg-slate-800 text-left"
+                        >
+                            <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                                <Package size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="block text-xs text-slate-500 font-bold uppercase">Product SKU</span>
+                                <span className="text-lg font-bold">{result.productName}</span>
+                            </div>
+                            <ChevronRight className="text-slate-600" />
+                        </button>
                     </div>
-                </button>
+                )}
 
-                <button
-                    onClick={() => navigate('/mobile/setup')}
-                    className={`flex flex-col items-center w-16 transition-colors duration-200 ${location.pathname.includes('setup') ? 'text-blue-400' : 'text-slate-500'}`}
-                >
-                    <Settings size={22} strokeWidth={location.pathname.includes('setup') ? 2.5 : 2} />
-                    <span className="text-[10px] mt-1 font-medium">Setup</span>
-                </button>
-            </nav>
+                {/* Empty State / Prompt */}
+                {!result && !isSearching && (
+                    <div className="h-full flex items-center justify-center opacity-20">
+                        <div className="text-center">
+                            <Search size={48} className="mx-auto mb-2" />
+                            <p className="text-sm font-bold">Waiting for input...</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* 3. KEYPAD */}
+            <div className="bg-slate-900 p-4 pb-8 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-slate-800 z-10 shrink-0">
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                    <button
+                        onClick={() => handleKeyPress('PO-')}
+                        className="py-4 rounded-2xl bg-blue-600/10 text-blue-400 font-black text-lg active:bg-blue-600 active:text-white transition-colors border border-blue-600/20"
+                    >
+                        PO-
+                    </button>
+                    <button
+                        onClick={() => handleKeyPress('SKU-')}
+                        className="py-4 rounded-2xl bg-emerald-500/10 text-emerald-400 font-black text-lg active:bg-emerald-500 active:text-white transition-colors border border-emerald-500/20"
+                    >
+                        SKU-
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        <button
+                            key={num}
+                            onClick={() => handleKeyPress(num.toString())}
+                            className="h-16 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:bg-slate-700 active:scale-95 transition-all shadow-lg"
+                        >
+                            {num}
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => handleKeyPress('BACKSPACE')}
+                        className="h-16 rounded-2xl bg-slate-800 text-red-400 flex items-center justify-center active:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        <Delete size={28} />
+                    </button>
+
+                    <button
+                        onClick={() => handleKeyPress('0')}
+                        className="h-16 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        0
+                    </button>
+
+                    <button
+                        onClick={() => handleKeyPress('ENTER')}
+                        disabled={isSearching}
+                        className="h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center active:bg-blue-500 active:scale-95 transition-all shadow-lg shadow-blue-900/40"
+                    >
+                        {isSearching ? <Loader2 className="animate-spin" /> : <CornerDownLeft size={28} />}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
 
-export default MobileLayout;
+export default MobileManualLookup;

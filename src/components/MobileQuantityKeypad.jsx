@@ -4,103 +4,95 @@ import { X, Check, Delete } from 'lucide-react';
 const MobileQuantityKeypad = ({
                                   productName,
                                   sku,
+                                  maxExpected,
                                   initialValue = 0,
-                                  maxExpected = 0,
                                   onConfirm,
-                                  onCancel
+                                  onCancel,
+                                  warehouseName // NEW: Show where we are counting
                               }) => {
     const [value, setValue] = useState(initialValue.toString());
 
-    const handleNumberClick = (num) => {
-        // Prevent leading zeros unless the value is just "0"
-        if (value === "0") {
-            setValue(num.toString());
-        } else {
-            setValue(prev => prev + num);
-        }
+    const handlePress = (num) => {
+        if (value === '0') setValue(num.toString());
+        else setValue(prev => prev + num);
     };
 
-    const handleDelete = () => {
-        if (value.length > 1) {
-            setValue(prev => prev.slice(0, -1));
-        } else {
-            setValue("0");
-        }
-    };
-
-    const handleConfirm = () => {
-        onConfirm(parseInt(value, 10));
+    const handleBackspace = () => {
+        setValue(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-950 z-[60] flex flex-col animate-in slide-in-from-bottom duration-300">
+        // FIXED: z-[100] ensures it sits ON TOP of the bottom nav (z-50)
+        <div className="fixed inset-0 bg-slate-950 z-[100] flex flex-col animate-in slide-in-from-bottom-full duration-300">
 
-            {/* 1. VISUAL VERIFICATION HEADER (Gap A) */}
-            <header className="p-6 bg-slate-900 border-b border-slate-800 text-center">
-                <div className="flex justify-between items-start mb-4">
-                    <button onClick={onCancel} className="p-2 text-slate-400">
-                        <X size={24} />
-                    </button>
-                    <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-bold">
-                        VERIFYING COUNT
+            {/* Header Area */}
+            <div className="p-6 pt-12 flex-1 flex flex-col justify-center items-center text-center space-y-4">
+                <button
+                    onClick={onCancel}
+                    className="absolute top-6 left-6 p-2 bg-slate-900 rounded-full text-slate-400 active:bg-slate-800"
+                >
+                    <X size={24} />
+                </button>
+
+                <div className="space-y-1">
+                    <span className="px-3 py-1 rounded-full bg-blue-900/30 text-blue-400 text-xs font-bold uppercase tracking-wider border border-blue-500/20">
+                        {warehouseName || 'Global Adjustment'}
+                    </span>
+                    <h2 className="text-2xl font-black text-white leading-tight mx-auto max-w-[80%]">
+                        {productName}
+                    </h2>
+                    <p className="text-slate-500 font-mono text-sm">{sku}</p>
+                </div>
+
+                <div className="py-6">
+                    <div className="text-sm text-slate-500 font-bold uppercase tracking-widest mb-1">
+                        Expected: <span className="text-white">{maxExpected}</span>
                     </div>
-                    <div className="w-10" /> {/* Spacer */}
+                    <div className="text-7xl font-black text-white tracking-tight">
+                        {value}
+                    </div>
+                    <div className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-2">
+                        Actual Count
+                    </div>
                 </div>
-
-                {/* Massive Product Name to prevent mixed shipment errors */}
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight break-words">
-                    {productName}
-                </h2>
-                <p className="text-slate-400 font-mono mt-1">SKU: {sku}</p>
-                <div className="mt-4 inline-block px-4 py-1 bg-slate-800 rounded-lg text-slate-300 text-sm">
-                    Expected: <span className="text-white font-bold">{maxExpected}</span>
-                </div>
-            </header>
-
-            {/* 2. CURRENT INPUT DISPLAY */}
-            <div className="flex-1 flex flex-col items-center justify-center p-6">
-                <span className="text-slate-500 text-sm uppercase font-bold tracking-widest mb-2">
-                    Received Quantity
-                </span>
-                <div className="text-7xl font-black text-blue-400 tabular-nums">
-                    {value}
-                </div>
-                {parseInt(value) > maxExpected && (
-                    <p className="text-amber-400 text-xs mt-4 font-bold flex items-center gap-1">
-                        ⚠️ Exceeds PO amount
-                    </p>
-                )}
             </div>
 
-            {/* 3. KEYPAD GRID (Gap 2) */}
-            <div className="bg-slate-900 p-4 pb-8 grid grid-cols-3 gap-3">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            {/* Keypad Grid */}
+            <div className="bg-slate-900 p-4 pb-8 rounded-t-[2.5rem] border-t border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <div className="grid grid-cols-3 gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        <button
+                            key={num}
+                            onClick={() => handlePress(num)}
+                            className="h-16 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:bg-slate-700 active:scale-95 transition-all shadow-sm border border-slate-700/50"
+                        >
+                            {num}
+                        </button>
+                    ))}
+
+                    {/* Backspace */}
                     <button
-                        key={num}
-                        onClick={() => handleNumberClick(num)}
-                        className="h-16 rounded-2xl bg-slate-800 text-2xl font-bold text-white active:bg-blue-600 transition-colors"
+                        onClick={handleBackspace}
+                        className="h-16 rounded-2xl bg-slate-800 text-red-400 flex items-center justify-center active:bg-slate-700 active:scale-95 transition-all border border-slate-700/50"
                     >
-                        {num}
+                        <Delete size={28} />
                     </button>
-                ))}
-                <button
-                    onClick={handleDelete}
-                    className="h-16 rounded-2xl bg-red-950/20 text-red-500 flex items-center justify-center active:bg-red-900/40"
-                >
-                    <Delete size={28} />
-                </button>
-                <button
-                    onClick={() => handleNumberClick(0)}
-                    className="h-16 rounded-2xl bg-slate-800 text-2xl font-bold text-white active:bg-blue-600"
-                >
-                    0
-                </button>
-                <button
-                    onClick={handleConfirm}
-                    className="h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center active:bg-emerald-500 shadow-lg shadow-emerald-900/20"
-                >
-                    <Check size={28} strokeWidth={3} />
-                </button>
+
+                    <button
+                        onClick={() => handlePress(0)}
+                        className="h-16 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:bg-slate-700 active:scale-95 transition-all border border-slate-700/50"
+                    >
+                        0
+                    </button>
+
+                    {/* Confirm Button */}
+                    <button
+                        onClick={() => onConfirm(parseInt(value))}
+                        className="h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center active:bg-emerald-500 active:scale-95 transition-all shadow-lg shadow-emerald-900/40"
+                    >
+                        <Check size={32} strokeWidth={3} />
+                    </button>
+                </div>
             </div>
         </div>
     );
