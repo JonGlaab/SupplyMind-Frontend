@@ -43,7 +43,7 @@ export default function SendEmailModal({ po, isOpen, onClose, onEmailSent, suppl
             setError('');
             try {
                 const response = await api.get(`/api/core/purchase-orders/${currentPoId}/preview-pdf`, {
-                    params: { signed: isCertified },
+                    params: { includeSignature: isCertified },
                     responseType: 'blob'
                 });
                 const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -144,7 +144,7 @@ export default function SendEmailModal({ po, isOpen, onClose, onEmailSent, suppl
                                 <Checkbox
                                     id="certify"
                                     checked={isCertified}
-                                    onChange={e => setIsCertified(e.target.checked)}
+                                    onChange={(e) => setIsCertified(e.target.checked)}
                                 />
                                 <div className="space-y-1">
                                     <Label htmlFor="certify" className="text-sm font-semibold cursor-pointer">I certify this transaction</Label>

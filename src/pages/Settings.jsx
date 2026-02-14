@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { User, Mail, Shield, Loader2, PenTool, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
-import { uploadFile } from '../services/storage.service';
 
 const Settings = () => {
     const [user, setUser] = useState(null);
@@ -54,17 +53,17 @@ const Settings = () => {
     const uploadSignature = async (file) => {
         if (!user) return;
         setUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
         try {
-            const cleanName = `${user.firstName}_${user.lastName}`.trim().replace(/\s+/g, '_');
-            const result = await uploadFile(
-                file,
-                cleanName,
-                user.id,
-                `${cleanName}_signature.${file.name.split('.').pop()}`
-            );
-            await api.put('/api/auth/me/signature', { signatureUrl: result.url });
-            setSignatureUrl(result.url);
-            setUser(prev => ({ ...prev, signatureUrl: result.url }));
+            const result = await api.post('/api/auth/me/signature', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            setSignatureUrl(result.data.url);
+            setUser(prev => ({ ...prev, signatureUrl: result.data.url }));
         } catch (error) {
             alert("Failed to upload signature.");
         } finally {
@@ -76,7 +75,7 @@ const Settings = () => {
     const handleRemoveSignature = async () => {
         if (!confirm('Are you sure you want to remove your signature?')) return;
         try {
-            await api.put('/api/auth/me/signature', { signatureUrl: null });
+            await api.delete('/api/auth/me/signature');
             setSignatureUrl('');
             setUser(prev => ({ ...prev, signatureUrl: '' }));
         } catch (error) {
