@@ -117,23 +117,38 @@ const ProcessOrder = () => {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-                <Button variant="ghost" onClick={handleCancel} className="text-slate-600">
-                    <ArrowLeft size={18} className="mr-2" /> Back to Receiving
-                </Button>
-                <div className="text-right">
-                    <h1 className="text-xl font-bold text-slate-900">Process Receipt: PO #{poId}</h1>
-                    <p className="text-sm text-slate-500">Destination: <span className="font-semibold text-slate-700">{po?.warehouseName || 'Main Warehouse'}</span></p>
+        <>
+            <div className="p-6 max-w-5xl mx-auto space-y-6">
+                <div className="flex items-center justify-between">
+                    <Button variant="ghost" onClick={handleCancel} className="text-slate-600">
+                        <ArrowLeft size={18} className="mr-2" /> Back to Receiving
+                    </Button>
+                    <div className="text-right">
+                        <h1 className="text-xl font-bold text-slate-900">Process Receipt: PO #{poId}</h1>
+                        <p className="text-sm text-slate-500">Destination: <span className="font-semibold text-slate-700">{po?.warehouseName || 'Main Warehouse'}</span></p>
+                    </div>
                 </div>
-            </div>
 
-            <Card className="border-emerald-200 bg-emerald-50/50 shadow-none">
-                <CardContent className="py-4 flex items-center gap-3 text-emerald-800 text-sm">
-                    <AlertCircle size={18} className="shrink-0" />
-                    <p><strong>Staff Protocol:</strong> Verify counts, enter values in <b>Delivered</b>, then <b>Verify</b> each row to finish.</p>
-                </CardContent>
-            </Card>
+                {isReadOnly && (
+                    <Card className="border-amber-200 bg-amber-50 shadow-sm">
+                        <CardContent className="py-4 flex items-center gap-3 text-amber-800">
+                            <AlertCircle size={20} className="shrink-0" />
+                            <p className="text-sm">
+                                <strong>Notice:</strong> This order is already <b>COMPLETED</b>.
+                                Inventory records are finalized and modifications are locked.
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {!isReadOnly && (
+                    <Card className="border-emerald-200 bg-emerald-50/50 shadow-none">
+                        <CardContent className="py-4 flex items-center gap-3 text-emerald-800 text-sm">
+                            <AlertCircle size={18} className="shrink-0" />
+                            <p><strong>Staff Protocol:</strong> Verify counts, enter values in <b>Delivered</b>, then <b>Verify</b> each row to finish.</p>
+                        </CardContent>
+                    </Card>
+                )}
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <table className="w-full text-left border-collapse">
@@ -222,6 +237,7 @@ const ProcessOrder = () => {
                 </Button>
             </div>
         </div>
+            </>
     );
 };
 

@@ -25,10 +25,11 @@ import ReturnRequest from "./pages/staff/ReturnRequest.jsx";
 import ProcessOrder from "./pages/staff/ProcessOrder.jsx";
 import Receiving from "./pages/staff/Receiving.jsx";
 import WarehouseInventory from "./pages/staff/WarehouseInventory.jsx";
-import WarehouseTransferHistory from "./pages/staff/WarehouseTransferHistory.jsx";
 import WarehousePOsHistory from "./pages/staff/WarehouseOrdersReceived.jsx";
 import WarehouseDashboard from "./pages/staff/WarehouseDashboard.jsx";
 import InventoryTransferModal from "./pages/staff/components/InventoryTransferModal.jsx";
+import TransferHistory from "./pages/staff/TransferHistory.jsx";
+import Transfer from "./pages/staff/Transfer.jsx";
 
 // Returns & PO Shared
 import PurchaseOrderView from "./pages/shared/PurchaseOrder.jsx";
@@ -93,8 +94,8 @@ const App = () => {
                 <Route path="staff/returnrequest" element={<ReturnRequest />} />
                 <Route path="staff/:warehouseId/transfer" element={< InventoryTransferModal />} />
                 <Route path="staff/return-request/:poId" element={<ReturnRequest />} />
-                <Route path="staff/transfer" element={<div className="p-8">Internal Transfer Page (Coming Soon)</div>} />
-                <Route path="staff/:warehouseId/transferhistory" element={<WarehouseTransferHistory />} />
+                <Route path="staff/transfer" element={< Transfer />} />
+                <Route path="staff/:warehouseId/transferhistory" element={<TransferHistory />} />
                 <Route path="staff/:warehouseId/receiving-history" element={<WarehousePOsHistory />} />
                 <Route path="staff/process/:poId" element={<ProcessOrder />} />
                 <Route path="staff/warehouselist" element={<WarehouseList />} />

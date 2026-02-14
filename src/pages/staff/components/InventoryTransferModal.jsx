@@ -79,21 +79,32 @@ const InventoryTransferModal = ({ isOpen, setIsOpen, selectedItem, fromWarehouse
     const handleTransferSubmit = async () => {
         if (!targetWarehouseId || error) return;
 
+        // Determine the actual ID - check both common names
+        const actualProductId = selectedItem.productId || selectedItem.id;
+
         try {
             setLoading(true);
             const payload = {
                 fromWarehouseId: Number(fromWarehouseId),
                 toWarehouseId: Number(targetWarehouseId),
-                productId: selectedItem.productId,
+                productId: Number(actualProductId), // Ensure it's a number
                 quantity: Number(transferQty),
-                notes: `Outbound transfer initiated from ${fromWarehouseName}`
+                notes: `Transfer from ${fromWarehouseName}`
             };
 
-            await api.post('/api/core/inventory/transfer', payload);
+            // Check your browser console to see if productId is 'NaN' or 'undefined'
+            console.log("✈️ Sending Transfer Payload:", payload);
+
+            const response = await api.post('/api/core/inventory/transfer', payload);
+
+            console.log("✅ Transfer Success:", response.data);
             setIsOpen(false);
             if (onComplete) onComplete();
         } catch (err) {
-            console.error("Transfer failed", err);
+            // This will explain WHY it's failing (400, 403, etc.)
+            console.error("❌ Transfer Failed!");
+            console.error("Status:", err.response?.status);
+            console.error("Server Message:", err.response?.data);
         } finally {
             setLoading(false);
         }
