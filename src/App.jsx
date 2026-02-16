@@ -45,6 +45,8 @@ import MobileReceivingManifest from './mobile/MobileReceivingManifest.jsx';
 import MobileProductDetail from "./mobile/MobileProductDetail.jsx";
 import MobileManualLookup from "./mobile/MobileManualLookup.jsx";
 import MobileReturnRequest from './mobile/MobileReturnRequest';
+import MobileTransfer from './mobile/MobileTransfer.jsx';
+import MobileInboundList from './mobile/MobileInboundList.jsx';
 
 import SuppliersPage from "./pages/SuppliersPage";
 import FinanceDashboard from "./pages/FinanceDashboard";
@@ -131,6 +133,8 @@ const App = () => {
                 <Route path="product/:productId" element={<MobileProductDetail />} />
                 <Route path="manual-lookup" element={<MobileManualLookup />} />
                 <Route path="return-request" element={<MobileReturnRequest />} />
+                <Route path="transfer" element={<MobileTransfer />} />
+                <Route path="inbound" element={<MobileInboundList />} />
             </Route>
 
             <Route path="/suppliers" element={<SuppliersPage />} />

@@ -2,15 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import MobileQuantityKeypad from '../components/MobileQuantityKeypad';
-import PhotoCapture from '../components/PhotoCapture'; // <--- NEW IMPORT
+import PhotoCapture from '../components/PhotoCapture';
 import {
-    ArrowLeft,
-    Camera,
-    CheckCircle2,
-    Loader2,
-    Save,
-    AlertCircle,
-    Image as ImageIcon
+    ArrowLeft, Camera, CheckCircle2, Loader2, Save,
+    AlertCircle, Image as ImageIcon, MapPin, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,17 +13,26 @@ const MobileReceivingManifest = () => {
     const { poId } = useParams();
     const navigate = useNavigate();
 
-    // State
+    // 1. GET CONTEXT
+    const currentWarehouse = JSON.parse(localStorage.getItem('currentWarehouse'));
+
     const [po, setPo] = useState(null);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
+    // 2. LOCATION WARNING STATE
+    const [locationMismatch, setLocationMismatch] = useState(false);
+
     // Overlays
-    const [activeItem, setActiveItem] = useState(null); // For Keypad
-    const [photoItem, setPhotoItem] = useState(null);   // For Camera
+    const [activeItem, setActiveItem] = useState(null);
+    const [photoItem, setPhotoItem] = useState(null);
 
     useEffect(() => {
+        if (!currentWarehouse) {
+            navigate('/mobile/home');
+            return;
+        }
         if (poId) fetchPoDetails();
     }, [poId]);
 
@@ -37,6 +41,13 @@ const MobileReceivingManifest = () => {
             setLoading(true);
             const poRes = await api.get(`/api/core/purchase-orders/${poId}`);
             setPo(poRes.data);
+
+            // 3. CHECK LOCATION MATCH
+            // Assuming poRes.data has warehouseId
+            if (Number(poRes.data.warehouseId) !== Number(currentWarehouse.warehouseId)) {
+                setLocationMismatch(true);
+                toast.error("Wrong Warehouse!");
+            }
 
             const statusRes = await api.get(`/api/core/purchase-orders/${poId}/receiving-status`);
             const rawItems = statusRes.data.items || [];
@@ -71,12 +82,7 @@ const MobileReceivingManifest = () => {
                 ? { ...item, evidenceUrl: url }
                 : item
         ));
-
-        // 2. Close Camera
         setPhotoItem(null);
-
-        // 3. Optional: Auto-verify the item if it was pending?
-        // For now, we just attach the evidence.
     };
 
     const handleSubmit = async () => {
@@ -91,8 +97,6 @@ const MobileReceivingManifest = () => {
                 lines: items.map(item => ({
                     poItemId: Number(item.poItemId),
                     receiveQty: Number(item.receiveQty),
-                    // Pass the evidence URL if your backend supports it now,
-                    // or it's already saved in storage tied to the ID.
                     notes: item.evidenceUrl ? `Evidence: ${item.evidenceUrl}` : null
                 }))
             };
@@ -123,7 +127,7 @@ const MobileReceivingManifest = () => {
                 <div className="flex justify-between items-end">
                     <div>
                         <h1 className="text-xl font-bold">PO #{poId}</h1>
-                        <p className="text-xs text-slate-500">{po?.warehouseName || 'Main Warehouse'}</p>
+                        <p className="text-xs text-slate-500">{po?.supplierName}</p>
                     </div>
                     <div className="text-right">
                         <span className="text-[10px] uppercase text-slate-500 font-bold tracking-widest">Verified</span>
@@ -134,13 +138,30 @@ const MobileReceivingManifest = () => {
                 </div>
             </header>
 
+            {/* 4. MISMATCH WARNING BANNER */}
+            {locationMismatch && (
+                <div className="bg-red-500 p-4 animate-pulse">
+                    <div className="flex items-start gap-3 text-white">
+                        <AlertTriangle className="shrink-0" size={24} strokeWidth={3} />
+                        <div>
+                            <p className="font-black uppercase tracking-wide text-xs">Wrong Destination</p>
+                            <p className="text-sm font-bold leading-tight mt-1">
+                                This PO is for {po?.warehouseName}, but you are at {currentWarehouse.locationName}.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Banner */}
-            <div className="p-3 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center gap-3">
-                <AlertCircle size={16} className="text-emerald-500 shrink-0" />
-                <p className="text-[10px] text-emerald-200 leading-tight">
-                    <b>Protocol:</b> Tap a card to verify count. Use camera for damages.
-                </p>
-            </div>
+            {!locationMismatch && (
+                <div className="p-3 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center gap-3">
+                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                    <p className="text-[10px] text-emerald-200 leading-tight">
+                        <b>Correct Location.</b> Verify counts below.
+                    </p>
+                </div>
+            )}
 
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
@@ -180,12 +201,10 @@ const MobileReceivingManifest = () => {
                                 </div>
                             </div>
 
-                            {/* CAMERA TRIGGER BUTTON */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     if (item.evidenceUrl) {
-                                        //  Photo exists -> Go to Return Request
                                         navigate('/mobile/return-request', {
                                             state: {
                                                 poId,
@@ -194,13 +213,12 @@ const MobileReceivingManifest = () => {
                                             }
                                         });
                                     } else {
-                                        //  No photo -> Open Camera Overlay
                                         setPhotoItem(item);
                                     }
                                 }}
                                 className={`p-3 rounded-2xl active:bg-slate-700 transition-colors ${
                                     item.evidenceUrl
-                                        ? 'bg-amber-500/20 text-amber-500' 
+                                        ? 'bg-amber-500/20 text-amber-500'
                                         : 'bg-slate-800 text-slate-400'
                                 }`}
                             >
@@ -213,21 +231,22 @@ const MobileReceivingManifest = () => {
 
             {/* Footer */}
             <div className="fixed bottom-0 w-full p-4 bg-slate-900 border-t border-slate-800">
+                {/* DISABLE SUBMIT IF WRONG LOCATION */}
                 <button
-                    disabled={submitting || !items.every(i => i.confirmed)}
+                    disabled={submitting || !items.every(i => i.confirmed) || locationMismatch}
                     onClick={handleSubmit}
                     className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
-                        items.every(i => i.confirmed)
+                        items.every(i => i.confirmed) && !locationMismatch
                             ? 'bg-emerald-600 text-white active:bg-emerald-500 shadow-lg shadow-emerald-900/20'
                             : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                     }`}
                 >
                     {submitting ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                    <span>{submitting ? 'Processing...' : 'Complete Receiving'}</span>
+                    <span>{locationMismatch ? 'Wrong Location' : (submitting ? 'Processing...' : 'Complete Receiving')}</span>
                 </button>
             </div>
 
-            {/* OVERLAY 1: Keypad */}
+            {/* OVERLAYS... (Same as before) */}
             {activeItem && (
                 <MobileQuantityKeypad
                     productName={activeItem.productName}
@@ -239,7 +258,6 @@ const MobileReceivingManifest = () => {
                 />
             )}
 
-            {/* OVERLAY 2: Camera  */}
             {photoItem && (
                 <PhotoCapture
                     poId={poId}
