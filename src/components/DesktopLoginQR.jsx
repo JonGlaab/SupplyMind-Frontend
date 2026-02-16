@@ -14,84 +14,59 @@ const DesktopLoginQR = () => {
     const [status, setStatus] = useState('connecting');
 
     useEffect(() => {
+        // 1. Generate unique session ID for this QR code
         const newSocketId = uuidv4();
         setSocketId(newSocketId);
 
         const socketUrl = getWebSocketUrl();
         console.log("🔵 Connecting to WebSocket at:", socketUrl);
 
+        // 2. Initialize Client
         const client = Stomp.over(() => new SockJS(socketUrl));
 
-        // Disable debug logs for cleaner console
-        client.debug = (str) => {
-            console.log(str);
-        };
+        // Configure Heartbeat
+        client.heartbeat.outgoing = 20000;
+        client.heartbeat.incoming = 0;
 
+        // Disable debug logs for cleaner console (optional)
+        client.debug = (str) => console.log(str);
+
+        // 3. Connect (ONLY ONCE)
         client.connect({}, () => {
             console.log("🟢 WebSocket Connected");
             setStatus('ready');
 
             console.log(`📡 Subscribing to: /topic/login/${newSocketId}`);
 
+            // Subscribe to the unique login topic
             client.subscribe(`/topic/login/${newSocketId}`, (message) => {
                 console.log("📩 Message Received:", message.body);
-
-                const body = JSON.parse(message.body);
-
-                if (body.token) {
-                    console.log("✅ Token found! Logging in...");
-                    setStatus('success');
-                    localStorage.setItem('token', body.token);
-                    setTimeout(() => navigate('/dashboard'), 1500);
-                }
-            });
-        }, (err) => {
-            console.error("🔴 WebSocket Error:", err);
-            setStatus('error');
-        });
-
-
-        client.heartbeat.outgoing = 20000;
-        client.heartbeat.incoming = 0;
-
-        client.connect({}, () => {
-            console.log("🟢 WebSocket Connected");
-            setStatus('ready');
-            client.subscribe(`/topic/login/${newSocketId}`, (message) => {
                 const body = JSON.parse(message.body);
 
                 if (body.token) {
                     console.log("✅ Login Approved!");
                     setStatus('success');
 
-                    // 1. SAVE THE DATA
+                    // Save session data
                     localStorage.setItem('token', body.token);
-                    localStorage.setItem('userRole', body.role); // <--- Critical Fix
+                    localStorage.setItem('userRole', body.role);
                     localStorage.setItem('userName', `${body.firstName} ${body.lastName}`);
 
-                    // 2. REDIRECT TO THE CORRECT DASHBOARD (Copied from Login.jsx)
+                    // Redirect based on role
                     setTimeout(() => {
                         switch (body.role) {
-                            case 'ADMIN':
-                                navigate('/admin/dashboard');
-                                break;
-                            case 'MANAGER':
-                                navigate('/manager/dashboard');
-                                break;
-                            case 'PROCUREMENT_OFFICER':
-                                navigate('/procurement/dashboard');
-                                break;
-                            case 'STAFF':
-                                navigate('/staff/dashboard');
-                                break;
-                            default:
-                                navigate('/warehouse/dashboard');
+                            case 'ADMIN': navigate('/admin/dashboard'); break;
+                            case 'MANAGER': navigate('/manager/dashboard'); break;
+                            case 'PROCUREMENT_OFFICER': navigate('/procurement/dashboard'); break;
+                            case 'STAFF': navigate('/staff/dashboard'); break;
+                            default: navigate('/warehouse/dashboard');
                         }
                     }, 1500);
                 }
             });
         }, (err) => {
             console.error("🔴 WebSocket Error:", err);
+            // Only show error if we haven't already succeeded
             if (status !== 'success') {
                 setStatus('error');
             }
@@ -99,15 +74,14 @@ const DesktopLoginQR = () => {
 
         stompClientRef.current = client;
 
-
+        // 4. Cleanup on Unmount
         return () => {
-            if (stompClientRef.current) {
+            if (stompClientRef.current && stompClientRef.current.connected) {
                 console.log("🔵 Disconnecting WebSocket...");
                 stompClientRef.current.disconnect();
             }
         };
-    }, [navigate]);
-
+    }, [navigate]); 
 
     if (status === 'connecting') {
         return (
