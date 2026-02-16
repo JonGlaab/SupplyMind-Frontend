@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/button.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.jsx';
 import { Input } from '../../components/ui/input.jsx';
 import { Badge } from '../../components/ui/badge.jsx';
+import toast from 'react-hot-toast';
 
 import {
     Search, Plus, Warehouse as WarehouseIcon, MapPin,
@@ -60,8 +61,9 @@ const WarehouseList = () => {
             setIsAdding(false);
             setFormData({ locationName: '', address: '', capacity: '' });
             fetchWarehouses(page);
+            toast.success("Warehouse created successfully!");
         } catch (err) {
-            alert("Error: Ensure Location Name is provided and Capacity is a number.");
+            toast.error("Error: Ensure Location Name is provided and Capacity is a number.");
         }
     };
 

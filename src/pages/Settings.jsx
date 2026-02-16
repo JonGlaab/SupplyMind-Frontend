@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { User, Mail, Shield, Loader2, PenTool, Upload, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '../components/ui/button.jsx';
 import { Input } from '../components/ui/input.jsx';
+import toast from 'react-hot-toast';
 
 const Settings = () => {
     const [user, setUser] = useState(null);
@@ -15,7 +16,7 @@ const Settings = () => {
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        loadProfile();
+        loadProfile().catch(console.error);
     }, []);
 
     const loadProfile = async () => {
@@ -25,6 +26,7 @@ const Settings = () => {
             setSignatureUrl(res.data.signatureUrl || '');
         } catch (error) {
             console.error("Failed to load profile", error);
+            toast.error("Failed to load profile.");
         } finally {
             setLoading(false);
         }
@@ -34,16 +36,14 @@ const Settings = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // 1. Validate File Type
         const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!validTypes.includes(file.type)) {
-            alert('Invalid file type. Please upload a PNG or JPG image.');
+            toast.error('Invalid file type. Please upload a PNG or JPG image.');
             return;
         }
 
-        // 2. Validate Size (Max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File is too large. Max size is 2MB.');
+            toast.error('File is too large. Max size is 2MB.');
             return;
         }
 
@@ -64,22 +64,49 @@ const Settings = () => {
             });
             setSignatureUrl(result.data.url);
             setUser(prev => ({ ...prev, signatureUrl: result.data.url }));
+            toast.success("Signature uploaded successfully!");
         } catch (error) {
-            alert("Failed to upload signature.");
+            toast.error("Failed to upload signature.");
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
-    const handleRemoveSignature = async () => {
-        if (!confirm('Are you sure you want to remove your signature?')) return;
+    const handleRemoveSignature = () => {
+        toast((t) => (
+            <div className="flex flex-col gap-4">
+                <p className="font-semibold">Are you sure you want to remove your signature?</p>
+                <div className="flex gap-2">
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                            removeSignature().catch(console.error);
+                            toast.dismiss(t.id);
+                        }}
+                    >
+                        Yes, Remove
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => toast.dismiss(t.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), {
+            duration: 6000,
+        });
+    };
+
+    const removeSignature = async () => {
         try {
             await api.delete('/api/auth/me/signature');
             setSignatureUrl('');
             setUser(prev => ({ ...prev, signatureUrl: '' }));
+            toast.success("Signature removed successfully!");
         } catch (error) {
             console.error("Failed to remove signature", error);
+            toast.error("Failed to remove signature.");
         }
     };
 
@@ -164,7 +191,6 @@ const Settings = () => {
                                                 src={signatureUrl}
                                                 alt="Signature"
                                                 className="w-full h-full object-contain p-2"
-                                                onError={(e) => { e.target.style.display = 'none'; }}
                                             />
                                         ) : (
                                             <div className="text-center p-4">
