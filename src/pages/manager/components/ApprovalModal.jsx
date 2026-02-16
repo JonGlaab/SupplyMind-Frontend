@@ -132,7 +132,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                         <CardContent>
                             <div className="flex items-center gap-2">
                                 <Select value={selectedStatus} onValueChange={setSelectedStatus}><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger>
-                                    <SelectContent>{PO_STATUSES.map(status => (<SelectItem key={status} value={status} disabled={status === 'APPROVED'}>{status}</SelectItem>))}</SelectContent>
+                                    <SelectContent>{PO_STATUSES.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
                                 </Select>
                                 <Button onClick={handleStatusUpdate}><Save className="mr-2 h-4 w-4" /> Save Status</Button>
                             </div>

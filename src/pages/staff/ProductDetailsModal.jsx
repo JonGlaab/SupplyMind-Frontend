@@ -3,6 +3,7 @@ import api from '../../services/api.js';
 import { Button } from '../../components/ui/button.jsx';
 import { Input } from '../../components/ui/input.jsx';
 import { Badge } from '../../components/ui/badge.jsx';
+import toast from "react-hot-toast";
 
 const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRole }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +33,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRo
             setIsEditing(false);
         } catch (err) {
             console.error("Update failed", err);
-            alert("Failed to update product.");
+            toast.error("Failed to update product.");
         } finally {
             setIsLoading(false);
         }
@@ -48,7 +49,7 @@ const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRo
             onUpdateSuccess();
         } catch (err) {
             console.error("Delete failed", err);
-            alert("Failed to delete product. It may be linked to existing orders.");
+            toast.error("Failed to delete product. It may be linked to existing orders.");
         } finally {
             setIsLoading(false);
         }
