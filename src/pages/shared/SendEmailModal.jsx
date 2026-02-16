@@ -6,6 +6,7 @@ import { Checkbox } from '../../components/ui/checkbox.jsx';
 import { Label } from '../../components/ui/label.jsx';
 import { Textarea } from '../../components/ui/textarea.jsx';
 import api from '../../services/api.js';
+import toast from 'react-hot-toast';
 
 export default function SendEmailModal({ po, isOpen, onClose, onEmailSent, supplierEmail }) {
     // --- All Hooks must be at the top level ---
@@ -96,10 +97,11 @@ export default function SendEmailModal({ po, isOpen, onClose, onEmailSent, suppl
             });
             onEmailSent();
             onClose();
+            toast.success("Email sent successfully!");
         } catch (err) {
             console.error("Failed to send email.", err);
             setError(err.response?.data?.message || "Failed to send email.");
-            alert("Failed to send email.");
+            toast.error("Failed to send email.");
         } finally {
             setSending(false);
         }
