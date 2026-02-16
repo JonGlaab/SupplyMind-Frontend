@@ -37,6 +37,7 @@
     "recharts": "^3.7.0",
     "serve": "^14.2.4",
     "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0"
   },

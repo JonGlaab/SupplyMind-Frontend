@@ -9,6 +9,7 @@ import {
     Search, Plus, Truck, Mail, Phone, MapPin, Package,
     MoreVertical, Trash2, X, Save, ArrowLeft
 } from 'lucide-react';
+import toast from "react-hot-toast";
 
 const SupplierList = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const SupplierList = () => {
             setFormData({ name: '', contactEmail: '', phone: '', address: '' });
             fetchSuppliers();
         } catch (err) {
-            alert("Check if phone number is too long (max 20) or name is missing.");
+            toast.error("Check if phone number is too long (max 20) or name is missing.");
         }
     };
 

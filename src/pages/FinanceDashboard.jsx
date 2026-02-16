@@ -11,6 +11,7 @@ import {
 
 import { getConnectStatus, mockEnableConnect } from "../api/supplierConnectApi";
 import PaymentTimeline from "../components/PaymentTimeline";
+import toast from "react-hot-toast";
 
 export default function FinanceDashboard() {
   const [pos, setPos] = useState([]);
@@ -111,14 +112,14 @@ export default function FinanceDashboard() {
     const res = await createInvoiceFromPo(poId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    alert(`Invoice created: ${res.invoiceId}`);
+    toast.error(`Invoice created: ${res.invoiceId}`);
   };
 
   const handleApprove = async (poId, invoiceId) => {
     await approveInvoice(invoiceId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    alert("Invoice approved");
+    toast.error("Invoice approved");
   };
 
   const handleSchedule = async (poId, invoiceId, amount) => {
@@ -133,8 +134,7 @@ export default function FinanceDashboard() {
 
     // save so we can execute even before reload
     setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: supplierPaymentId }));
-
-    alert(`Payment scheduled. id=${supplierPaymentId}`);
+    toast.error(`Payment scheduled. id=${supplierPaymentId}`);
 
     // refresh invoice + latest payment info
     const inv = await getInvoiceByPo(poId);
@@ -161,12 +161,12 @@ export default function FinanceDashboard() {
     const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
     if (!supplierPaymentId) {
-      alert("No scheduled payment found for this invoice. Please schedule payment first.");
+      toast.error("No scheduled payment found for this invoice. Please schedule payment first.");
       return;
     }
 
     await executePayment(supplierPaymentId);
-    alert("Payment executed");
+    toast.error("Payment executed");
 
     // refresh invoice
     const inv = await getInvoiceByPo(poId);

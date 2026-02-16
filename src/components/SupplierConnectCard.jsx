@@ -4,6 +4,7 @@ import {
   getConnectStatus,
   mockEnableConnect
 } from "../api/supplierConnectApi";
+import toast from "react-hot-toast";
 
 export default function SupplierConnectCard({ supplier }) {
 
@@ -24,7 +25,7 @@ export default function SupplierConnectCard({ supplier }) {
       window.open(res.url, "_blank");
 
     } catch (e) {
-      alert("Failed to generate onboarding link");
+      toast.error("Failed to generate onboarding link");
     } finally {
       setLoading(false);
     }
@@ -39,7 +40,7 @@ export default function SupplierConnectCard({ supplier }) {
       setStatus(res.connectStatus);
 
     } catch (e) {
-      alert("Failed to refresh status");
+      toast.error("Failed to refresh status");
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ export default function SupplierConnectCard({ supplier }) {
       setStatus("ENABLED");
 
     } catch (e) {
-      alert("Mock enable failed");
+      toast.error("Mock enable failed");
     } finally {
       setLoading(false);
     }
