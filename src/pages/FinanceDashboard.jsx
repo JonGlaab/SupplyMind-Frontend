@@ -83,9 +83,9 @@ export default function FinanceDashboard() {
       setScheduledPaymentMap(spm);
       setPaymentInfoMap(pim);
 
-      // load connect status for each supplier
+      // load connect status for each supplier (DTO mapping)
       const supplierIds = [
-        ...new Set(data.map((p) => p.supplier?.supplierId).filter(Boolean))
+        ...new Set(data.map((p) => p.supplierId).filter(Boolean))
       ];
 
       const statusPairs = await Promise.all(
@@ -228,7 +228,10 @@ export default function FinanceDashboard() {
       <div className="grid grid-cols-1 gap-4">
         {pos.map((po) => {
           const inv = invoiceMap[po.poId];
-          const supplierId = po.supplier?.supplierId;
+
+          // ✅ DTO mapping
+          const supplierId = po.supplierId;
+
           const connectStatus = supplierId ? connectMap[supplierId] : "UNKNOWN";
           const connectEnabled = connectStatus === "ENABLED";
 
@@ -241,7 +244,7 @@ export default function FinanceDashboard() {
                   <div className="text-lg font-semibold">PO #{po.poId}</div>
 
                   <div className="text-sm text-gray-600 mt-1">
-                    Supplier: {po.supplier?.name} (ID: {supplierId})
+                    Supplier: {po.supplierName} (ID: {supplierId})
                   </div>
 
                   <div className="text-sm text-gray-600">
@@ -277,7 +280,7 @@ export default function FinanceDashboard() {
                     <button
                       onClick={() => {
                         setOpenTimelineSupplierId(supplierId);
-                        setOpenTimelineSupplierName(po.supplier?.name);
+                        setOpenTimelineSupplierName(po.supplierName);
                       }}
                       className="block mt-2 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm"
                     >
