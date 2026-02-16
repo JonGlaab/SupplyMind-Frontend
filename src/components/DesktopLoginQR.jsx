@@ -81,7 +81,7 @@ const DesktopLoginQR = () => {
                 stompClientRef.current.disconnect();
             }
         };
-    }, [navigate]); 
+    }, [navigate]);
 
     if (status === 'connecting') {
         return (
