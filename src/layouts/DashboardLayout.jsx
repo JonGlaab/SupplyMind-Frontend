@@ -80,23 +80,24 @@ const DashboardLayout = () => {
         ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
         ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> }] : []),
 
-        // 2. MANAGER & ADMIN OVERSIGHT
-        ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
+        // 2. MANAGER
+        ...(userRole === 'MANAGER' ? [
             { type: 'divider', label: 'Managerial Tools' },
             { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> },
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
             { label: 'Master Product List', path: '/staff/productlist', icon: <Package size={20} /> },
+            { label: 'Finance and payments', path: '/finance', icon: <Package size={20} /> },
         ] : []),
 
         // 3. PROCUREMENT TOOLS
-        ...((userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') ? [
+        ...(userRole === 'PROCUREMENT_OFFICER' ? [
             { type: 'divider', label: 'Procurement & Inventory' },
             { label: 'Suppliers', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
         ] : []),
 
         // 4. WAREHOUSE OPERATIONS
-        ...((userRole === 'STAFF' || userRole === 'ADMIN') ? [
+        ...(userRole === 'STAFF'? [
             { type: 'divider', label: 'Warehouse Operations' },
             { label: 'Warehouse Operations', path: '/staff/dashboard', icon: <Truck size={20} /> },
             { label: 'Initiate Return', path: '/staff/returnrequest', icon: <RotateCcw size={20} /> },
