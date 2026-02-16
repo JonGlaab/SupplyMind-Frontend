@@ -157,101 +157,47 @@ export default function FinanceDashboard() {
     }
   };
 
- const handleExecute = async (poId, invoiceId) => {
-  const supplierPaymentId = scheduledPaymentMap[invoiceId];
+  const handleExecute = async (poId, invoiceId) => {
+    const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     if (!supplierPaymentId) {
       toast.error("No scheduled payment found for this invoice. Please schedule payment first.");
       return;
     }
 
-    await executePayment(supplierPaymentId);
-    toast.error("Payment executed");
-=======
-  if (!supplierPaymentId) {
-    alert("No scheduled payment found for this invoice. Please schedule payment first.");
-    return;
-  }
+    const res = await executePayment(supplierPaymentId);
 
-  const res = await executePayment(supplierPaymentId);
->>>>>>> Stashed changes
+    if (res?.status === "PAID") {
+      toast.success("Payment succeeded ✅");
+    } else if (res?.status === "PROCESSING") {
+      toast("Payment is processing ⏳ (try refresh in a moment)");
+    } else {
+      toast.error("Payment failed ❌: " + (res?.message || ""));
+    }
 
-  if (res.status === "PAID") {
-    alert("Payment succeeded ✅");
-  } else if (res.status === "PROCESSING") {
-    alert("Payment is processing ⏳ (try refresh in a moment)");
-  } else {
-    alert("Payment failed ❌: " + (res.message || ""));
-  }
+    // ✅ reload invoice + payment list so Paid/Remaining updates on UI
+    const inv = await getInvoiceByPo(poId);
+    setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
 
-  // ✅ reload invoice + payment list so Paid/Remaining updates on UI
-  const inv = await getInvoiceByPo(poId);
-  setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
+    const payments = await getPaymentsByInvoice(invoiceId);
+    const latest = payments?.[0] || null;
 
-=======
-  if (!supplierPaymentId) {
-    alert("No scheduled payment found for this invoice. Please schedule payment first.");
-    return;
-  }
+    if (latest) {
+      setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: latest.supplierPaymentId }));
+      setPaymentInfoMap((prev) => ({
+        ...prev,
+        [invoiceId]: {
+          supplierPaymentId: latest.supplierPaymentId,
+          status: latest.status,
+          executedAt: latest.executedAt,
+          amount: latest.amount,
+          currency: latest.currency
+        }
+      }));
+    }
 
-  const res = await executePayment(supplierPaymentId);
-
-  if (res.status === "PAID") {
-    alert("Payment succeeded ✅");
-  } else if (res.status === "PROCESSING") {
-    alert("Payment is processing ⏳ (try refresh in a moment)");
-  } else {
-    alert("Payment failed ❌: " + (res.message || ""));
-  }
-
-  // ✅ reload invoice + payment list so Paid/Remaining updates on UI
-  const inv = await getInvoiceByPo(poId);
-  setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-
->>>>>>> Stashed changes
-=======
-  if (!supplierPaymentId) {
-    alert("No scheduled payment found for this invoice. Please schedule payment first.");
-    return;
-  }
-
-  const res = await executePayment(supplierPaymentId);
-
-  if (res.status === "PAID") {
-    alert("Payment succeeded ✅");
-  } else if (res.status === "PROCESSING") {
-    alert("Payment is processing ⏳ (try refresh in a moment)");
-  } else {
-    alert("Payment failed ❌: " + (res.message || ""));
-  }
-
-  // ✅ reload invoice + payment list so Paid/Remaining updates on UI
-  const inv = await getInvoiceByPo(poId);
-  setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-
->>>>>>> Stashed changes
-  const payments = await getPaymentsByInvoice(invoiceId);
-  const latest = payments?.[0] || null;
-
-  if (latest) {
-    setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: latest.supplierPaymentId }));
-    setPaymentInfoMap((prev) => ({
-      ...prev,
-      [invoiceId]: {
-        supplierPaymentId: latest.supplierPaymentId,
-        status: latest.status,
-        executedAt: latest.executedAt,
-        amount: latest.amount,
-        currency: latest.currency
-      }
-    }));
-  }
-};
-
-
+    await load();
+  };
 
   const handleDemoEnableSupplier = async (supplierId) => {
     await mockEnableConnect(supplierId);
