@@ -161,6 +161,7 @@ export default function FinanceDashboard() {
   const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     if (!supplierPaymentId) {
       toast.error("No scheduled payment found for this invoice. Please schedule payment first.");
       return;
@@ -189,6 +190,27 @@ export default function FinanceDashboard() {
   const inv = await getInvoiceByPo(poId);
   setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
 
+=======
+  if (!supplierPaymentId) {
+    alert("No scheduled payment found for this invoice. Please schedule payment first.");
+    return;
+  }
+
+  const res = await executePayment(supplierPaymentId);
+
+  if (res.status === "PAID") {
+    alert("Payment succeeded ✅");
+  } else if (res.status === "PROCESSING") {
+    alert("Payment is processing ⏳ (try refresh in a moment)");
+  } else {
+    alert("Payment failed ❌: " + (res.message || ""));
+  }
+
+  // ✅ reload invoice + payment list so Paid/Remaining updates on UI
+  const inv = await getInvoiceByPo(poId);
+  setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
+
+>>>>>>> Stashed changes
   const payments = await getPaymentsByInvoice(invoiceId);
   const latest = payments?.[0] || null;
 
