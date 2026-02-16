@@ -1,6 +1,15 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, Scan, LogOut, ScanQrCode, Keyboard, AlertTriangle, Package, FileText } from 'lucide-react';
+import {
+    Monitor,
+    Scan,
+    LogOut,
+    ScanQrCode,
+    Keyboard,
+    AlertTriangle,
+    Package,
+    FileText
+} from 'lucide-react';
 import QRScanner from '../components/QRScanner';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -25,7 +34,6 @@ const MobileHome = () => {
             if (scanType === 'PO') {
                 navigate(`/mobile/process/${poId}`);
             } else if (scanType === 'PRODUCT') {
-                // Navigate to product view (to be built)
                 navigate(`/mobile/product/${productId}`);
             } else if (scanType === 'AMBIGUOUS') {
                 setAmbiguousData(res.data);
@@ -47,11 +55,13 @@ const MobileHome = () => {
     if (!token) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-slate-950">
-                <div className="p-4 bg-slate-900 rounded-full text-slate-500 mb-4">
+                <div className="p-4 bg-slate-900 rounded-full text-slate-500 mb-4 animate-pulse">
                     <Monitor size={48} />
                 </div>
                 <h2 className="text-xl font-bold text-white">Device Not Linked</h2>
-                <p className="text-slate-400 mt-2 mb-6">Scan the setup QR code on your desktop to link this device.</p>
+                <p className="text-slate-400 mt-2 mb-6 max-w-xs mx-auto">
+                    Scan the setup QR code on your desktop to link this device.
+                </p>
                 <button
                     onClick={() => navigate('/mobile/setup')}
                     className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
@@ -63,10 +73,10 @@ const MobileHome = () => {
     }
 
     return (
-        <div className="flex flex-col h-full bg-slate-950 p-6 space-y-6">
+        <div className="flex flex-col h-full bg-slate-950 p-6 space-y-6 overflow-y-auto pb-32">
 
             {/* HEADER */}
-            <header className="flex justify-between items-center py-2">
+            <header className="flex justify-between items-center py-2 shrink-0">
                 <div>
                     <h1 className="text-2xl font-black text-white tracking-tight">SupplyMind</h1>
                     <div className="flex items-center gap-2">
@@ -79,17 +89,17 @@ const MobileHome = () => {
                 </div>
                 <button
                     onClick={() => navigate('/mobile/qr-login')}
-                    className="p-3 bg-slate-900 text-blue-400 rounded-2xl border border-slate-800 active:bg-slate-800"
+                    className="p-3 bg-slate-900 text-blue-400 rounded-2xl border border-slate-800 active:bg-slate-800 transition-colors"
                 >
                     <ScanQrCode size={20} />
                 </button>
             </header>
 
             {/* MAIN SCAN BUTTON */}
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="w-full">
                 <button
                     onClick={() => setShowScanner(true)}
-                    className="w-full aspect-square bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] shadow-2xl shadow-blue-900/40 flex flex-col items-center justify-center gap-6 active:scale-95 transition-all relative overflow-hidden group"
+                    className="w-full aspect-square bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] shadow-2xl shadow-blue-900/40 flex flex-col items-center justify-center gap-6 active:scale-95 transition-all relative overflow-hidden group border-4 border-slate-900/50"
                 >
                     <div className="absolute inset-0 bg-white/5 opacity-0 group-active:opacity-100 transition-opacity" />
                     <div className="p-6 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 shadow-inner">
@@ -103,10 +113,10 @@ const MobileHome = () => {
             </div>
 
             {/* SECONDARY ACTIONS */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 shrink-0">
                 <button
                     onClick={() => navigate('/mobile/manual-lookup')}
-                    className="w-full p-5 bg-slate-900 rounded-3xl border border-slate-800 flex items-center justify-center gap-3 text-slate-300 font-bold active:bg-slate-800 transition-colors"
+                    className="w-full p-5 bg-slate-900 rounded-3xl border border-slate-800 flex items-center justify-center gap-3 text-slate-300 font-bold active:bg-slate-800 transition-colors shadow-sm"
                 >
                     <Keyboard size={20} className="text-slate-500" />
                     Manual Entry
@@ -114,10 +124,12 @@ const MobileHome = () => {
 
                 <button
                     onClick={() => {
-                        localStorage.clear();
-                        navigate('/login');
+                        if(window.confirm("Are you sure you want to unlink?")) {
+                            localStorage.clear();
+                            navigate('/login');
+                        }
                     }}
-                    className="w-full p-4 text-slate-600 text-sm font-bold flex items-center justify-center gap-2"
+                    className="w-full p-4 text-slate-600 text-sm font-bold flex items-center justify-center gap-2 active:text-red-500 transition-colors"
                 >
                     <LogOut size={16} />
                     Unlink Device
@@ -127,7 +139,7 @@ const MobileHome = () => {
             {/* ---  AMBIGUITY MODAL --- */}
             {ambiguousData && (
                 <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-                    <div className="bg-slate-900 border border-slate-800 w-full rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <div className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
                         <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
                             <AlertTriangle size={32} />
                         </div>
@@ -139,7 +151,7 @@ const MobileHome = () => {
                         <div className="space-y-3">
                             <button
                                 onClick={() => navigate(`/mobile/process/${ambiguousData.poId}`)}
-                                className="w-full p-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-blue-500"
+                                className="w-full p-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-blue-500 transition-colors"
                             >
                                 <div className="p-2 bg-white/10 rounded-lg"><FileText size={20}/></div>
                                 <div className="text-left">
@@ -150,7 +162,7 @@ const MobileHome = () => {
 
                             <button
                                 onClick={() => navigate(`/mobile/product/${ambiguousData.productId}`)}
-                                className="w-full p-4 bg-slate-800 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-slate-700"
+                                className="w-full p-4 bg-slate-800 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-slate-700 transition-colors border border-slate-700"
                             >
                                 <div className="p-2 bg-white/10 rounded-lg"><Package size={20}/></div>
                                 <div className="text-left">
@@ -161,7 +173,7 @@ const MobileHome = () => {
 
                             <button
                                 onClick={() => setAmbiguousData(null)}
-                                className="w-full p-4 text-slate-500 text-sm font-bold"
+                                className="w-full p-4 text-slate-500 text-sm font-bold active:text-white"
                             >
                                 Cancel
                             </button>
