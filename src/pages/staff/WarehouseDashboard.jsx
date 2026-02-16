@@ -37,7 +37,7 @@ const WarehouseDashboard = () => {
             title: "Transfer Stock",
             description: "Move items to another location",
             icon: <ArrowLeftRight size={24} className="text-amber-600" />,
-            path: `/staff/transfer?from=${selectedWhId}`,
+            path: `/staff/transfer`,
             color: "bg-amber-50"
         }
         ,

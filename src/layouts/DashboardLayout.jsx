@@ -83,7 +83,6 @@ const DashboardLayout = () => {
         // 2. MANAGER & ADMIN OVERSIGHT
         ...((userRole === 'MANAGER' || userRole === 'ADMIN') ? [
             { type: 'divider', label: 'Managerial Tools' },
-            { label: 'Returns Authorization', path: '/manager/returns-approval', icon: <ClipboardCheck size={20} /> },
             { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> },
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
             { label: 'Master Product List', path: '/staff/productlist', icon: <Package size={20} /> },
