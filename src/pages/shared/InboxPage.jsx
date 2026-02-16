@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     MessageCircle, Search, Building2,
     X, Paperclip, Loader2, Download, AlertCircle, Eye
@@ -8,6 +8,11 @@ import { Progress } from '../../components/ui/progress.jsx';
 import { Button } from '../../components/ui/button.jsx';
 import InboxService from '../../services/inbox.service.js';
 import { FileText } from 'lucide-react';
+
+
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+import { getWebSocketUrl } from '../../services/websocket.js';
 
 // --- Helper: Status to Progress % ---
 const getStatusPercentage = (status) => {
@@ -23,7 +28,7 @@ const getStatusPercentage = (status) => {
     return map[status] || 5;
 };
 
-// --- Helper: Status Color ---
+
 const getProgressColor = (status) => {
     if (status === 'DELAY_EXPECTED') return 'bg-red-500';
     if (status === 'RECEIVED' || status === 'PAID') return 'bg-green-500';
@@ -41,6 +46,10 @@ export default function InboxPage() {
     // Attachment Modal State
     const [activeAttachment, setActiveAttachment] = useState(null);
 
+    // WebSocket Refs
+    const stompClientRef = useRef(null);
+    const subscriptionRef = useRef(null);
+
     // 1. Fetch Sidebar List
     useEffect(() => {
         loadConversations();
@@ -57,12 +66,13 @@ export default function InboxPage() {
         }
     };
 
-    // 2. Fetch Chat Messages
+
     useEffect(() => {
         if (!selectedPo || !selectedPo.id) return;
 
         setActiveAttachment(null);
 
+        // A. Initial Load via REST
         const fetchChat = async () => {
             setLoadingChat(true);
             try {
@@ -77,9 +87,47 @@ export default function InboxPage() {
         };
 
         fetchChat();
-        const interval = setInterval(fetchChat, 30000);
-        return () => clearInterval(interval);
-    }, [selectedPo]);
+
+        // B. Connect WebSocket
+        const socket = new SockJS(getWebSocketUrl());
+        const stompClient = Stomp.over(socket);
+        // Disable debug logs for cleaner console
+        stompClient.debug = () => {};
+
+        stompClient.connect({}, () => {
+            // Subscribe to this specific PO's topic
+            const sub = stompClient.subscribe(`/topic/po/${selectedPo.id}`, (payload) => {
+                try {
+                    const newMessage = JSON.parse(payload.body);
+                    // Append new message to state immediately
+                    setMessages((prev) => {
+                        // Avoid duplicates if any
+                        if (prev.find(m => m.messageId === newMessage.messageId)) return prev;
+                        // Sort by timestamp to be safe
+                        const updated = [...prev, newMessage];
+                        updated.sort((a, b) => a.timestamp - b.timestamp);
+                        return updated;
+                    });
+                } catch (e) {
+                    console.error("Error parsing WS message", e);
+                }
+            });
+            subscriptionRef.current = sub;
+        }, (err) => {
+            console.error("WS Connection Error:", err);
+        });
+
+        stompClientRef.current = stompClient;
+
+        // Cleanup on PO change or unmount
+        return () => {
+            if (subscriptionRef.current) subscriptionRef.current.unsubscribe();
+            if (stompClientRef.current && stompClientRef.current.connected) {
+                stompClientRef.current.disconnect();
+            }
+        };
+
+    }, [selectedPo]); // Re-run when selected PO changes
 
     // 3. Handle Attachment
     const handleAttachmentClick = async (fileName, messageId) => {
@@ -97,6 +145,8 @@ export default function InboxPage() {
         (po.supplierName || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // ... (Render Logic remains exactly the same as your previous file) ...
+    // ... Copy the RETURN block from your existing file here ...
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
             {/* LEFT SIDEBAR */}
