@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Monitor,
-    Scan,
-    LogOut,
-    ScanQrCode,
-    Keyboard,
-    AlertTriangle,
-    Package,
-    FileText
+    Monitor, Scan, LogOut, MapPin, Truck, ArrowLeftRight,
+    Keyboard, AlertTriangle, Package, FileText, Settings, RefreshCw, ScanQrCode
 } from 'lucide-react';
 import QRScanner from '../components/QRScanner';
 import api from '../services/api';
@@ -18,176 +12,220 @@ const MobileHome = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
+    // --- STATE ---
+    const [warehouses, setWarehouses] = useState([]);
+    const [currentWarehouse, setCurrentWarehouse] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const [showScanner, setShowScanner] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [scanStatus, setScanStatus] = useState('');
     const [ambiguousData, setAmbiguousData] = useState(null);
 
+    // --- INIT ---
+    useEffect(() => {
+        if (!token) return;
+
+        // 1. Load persisted warehouse
+        const savedWh = localStorage.getItem('currentWarehouse');
+        if (savedWh) {
+            setCurrentWarehouse(JSON.parse(savedWh));
+        }
+
+        // 2. Fetch list for selection/switching
+        const fetchWarehouses = async () => {
+            try {
+                const res = await api.get('/api/core/warehouses');
+                const data = res.data.content || res.data || [];
+                setWarehouses(data);
+            } catch (err) {
+                console.error("Failed to load warehouses");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchWarehouses();
+    }, [token]);
+
+    const handleSelectWarehouse = (wh) => {
+        localStorage.setItem('currentWarehouse', JSON.stringify(wh));
+        setCurrentWarehouse(wh);
+        toast.success(`Checked in to ${wh.locationName}`);
+    };
+
+    const handleSwitchLocation = () => {
+        if(window.confirm("Switch working location?")) {
+            localStorage.removeItem('currentWarehouse');
+            setCurrentWarehouse(null);
+        }
+    };
+
+    // --- SCAN LOGIC ---
     const handleSmartScan = async (code) => {
         setIsProcessing(true);
-        setScanStatus('Analyzing code...');
-
         try {
             const res = await api.get(`/api/mobile/scan/analyze?code=${code}`);
             const { scanType, poId, productId } = res.data;
 
             if (scanType === 'PO') {
-                navigate(`/mobile/process/${poId}`);
+                // Pass the current warehouse context
+                navigate(`/mobile/process/${poId}`, { state: { warehouseId: currentWarehouse.warehouseId } });
             } else if (scanType === 'PRODUCT') {
-                navigate(`/mobile/product/${productId}`);
+                navigate(`/mobile/product/${productId}`, { state: { warehouseId: currentWarehouse.warehouseId } });
             } else if (scanType === 'AMBIGUOUS') {
                 setAmbiguousData(res.data);
                 setShowScanner(false);
             } else {
-                toast.error("Unknown barcode. Try manual entry.");
+                toast.error("Unknown barcode");
                 setShowScanner(false);
             }
         } catch (err) {
-            console.error(err);
-            toast.error("Analysis failed. Check connection.");
+            toast.error("Scan failed");
             setShowScanner(false);
         } finally {
             setIsProcessing(false);
-            setScanStatus('');
         }
     };
 
+    // --- VIEW: NOT LOGGED IN ---
     if (!token) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-center p-6 bg-slate-950">
-                <div className="p-4 bg-slate-900 rounded-full text-slate-500 mb-4 animate-pulse">
-                    <Monitor size={48} />
-                </div>
-                <h2 className="text-xl font-bold text-white">Device Not Linked</h2>
-                <p className="text-slate-400 mt-2 mb-6 max-w-xs mx-auto">
-                    Scan the setup QR code on your desktop to link this device.
-                </p>
-                <button
-                    onClick={() => navigate('/mobile/setup')}
-                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform"
-                >
-                    Link Now
+            <div className="flex flex-col items-center justify-center h-full bg-slate-950 p-6 text-center">
+                <Monitor size={48} className="text-slate-600 mb-4" />
+                <h2 className="text-white font-bold text-xl">Device Not Linked</h2>
+                <button onClick={() => navigate('/mobile/setup')} className="mt-6 w-full py-4 bg-blue-600 text-white rounded-2xl font-bold">
+                    Link Device
                 </button>
             </div>
         );
     }
 
+    // --- VIEW: SELECT LOCATION (The new "First Step") ---
+    if (!currentWarehouse) {
+        return (
+            <div className="flex flex-col h-full bg-slate-950 p-6">
+                <h1 className="text-2xl font-black text-white mb-2">Select Location</h1>
+                <p className="text-slate-400 mb-6">Where are you working today?</p>
+
+                <div className="flex-1 overflow-y-auto space-y-3">
+                    {loading ? <p className="text-slate-500">Loading locations...</p> :
+                        warehouses.map(wh => (
+                            <button
+                                key={wh.warehouseId}
+                                onClick={() => handleSelectWarehouse(wh)}
+                                className="w-full p-5 bg-slate-900 border border-slate-800 rounded-2xl text-left flex items-center gap-4 active:bg-blue-600/20 active:border-blue-600 transition-all"
+                            >
+                                <div className="p-3 bg-slate-800 rounded-xl text-slate-400">
+                                    <MapPin size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold text-lg">{wh.locationName}</h3>
+                                    <p className="text-slate-500 text-xs uppercase font-bold">{wh.address || 'No Address'}</p>
+                                </div>
+                            </button>
+                        ))}
+                </div>
+            </div>
+        );
+    }
+
+    // --- VIEW: MAIN DASHBOARD (Context-Aware) ---
     return (
         <div className="flex flex-col h-full bg-slate-950 p-6 space-y-6 overflow-y-auto pb-32">
 
-            {/* HEADER */}
-            <header className="flex justify-between items-center py-2 shrink-0">
+            {/* LOCATION HEADER */}
+            <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-black text-white tracking-tight">SupplyMind</h1>
-                    <div className="flex items-center gap-2">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Warehouse Ops</p>
-                    </div>
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Current Location</p>
+                    <button
+                        onClick={handleSwitchLocation}
+                        className="flex items-center gap-2 text-white font-black text-xl active:opacity-70"
+                    >
+                        {currentWarehouse.locationName} <RefreshCw size={14} className="text-slate-600" />
+                    </button>
                 </div>
                 <button
                     onClick={() => navigate('/mobile/qr-login')}
-                    className="p-3 bg-slate-900 text-blue-400 rounded-2xl border border-slate-800 active:bg-slate-800 transition-colors"
+                    className="p-3 bg-slate-900 text-blue-400 rounded-2xl border border-slate-800"
                 >
                     <ScanQrCode size={20} />
                 </button>
-            </header>
+            </div>
 
-            {/* MAIN SCAN BUTTON */}
-            <div className="w-full">
+            {/* BIG SCAN BUTTON */}
+            <button
+                onClick={() => setShowScanner(true)}
+                className="w-full aspect-square bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center gap-6 active:scale-95 transition-all border-4 border-slate-900/50"
+            >
+                <div className="p-6 bg-white/10 backdrop-blur-xl rounded-full border border-white/20">
+                    <Scan size={64} className="text-white" strokeWidth={2.5} />
+                </div>
+                <div className="text-center">
+                    <h2 className="text-3xl font-black text-white">SCAN</h2>
+                    <p className="text-blue-100/70 text-sm font-medium">Any item in this warehouse</p>
+                </div>
+            </button>
+
+            {/* CONTEXT ACTIONS */}
+            <div className="grid grid-cols-2 gap-4">
                 <button
-                    onClick={() => setShowScanner(true)}
-                    className="w-full aspect-square bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] shadow-2xl shadow-blue-900/40 flex flex-col items-center justify-center gap-6 active:scale-95 transition-all relative overflow-hidden group border-4 border-slate-900/50"
+                    onClick={() => navigate('/mobile/inbound')}
+                    className="p-5 bg-slate-900 rounded-3xl border border-slate-800 flex flex-col items-center justify-center gap-3 text-white h-32 active:scale-95 transition-transform"
                 >
-                    <div className="absolute inset-0 bg-white/5 opacity-0 group-active:opacity-100 transition-opacity" />
-                    <div className="p-6 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 shadow-inner">
-                        <Scan size={64} className="text-white" strokeWidth={2.5} />
-                    </div>
-                    <div className="text-center px-6">
-                        <h2 className="text-3xl font-black text-white">SMART SCAN</h2>
-                        <p className="text-blue-100/70 text-sm mt-1 font-medium italic">PO Manifest or Product SKU</p>
-                    </div>
+                    <Truck size={28} className="text-emerald-500" />
+                    <span className="font-bold text-sm">Inbound</span>
+                </button>
+
+                <button
+                    onClick={() => navigate('/mobile/transfer')}
+                    className="p-5 bg-slate-900 rounded-3xl border border-slate-800 flex flex-col items-center justify-center gap-3 text-white h-32 active:scale-95 transition-transform"
+                >
+                    <ArrowLeftRight size={28} className="text-amber-500" />
+                    <span className="font-bold text-sm">Transfer</span>
                 </button>
             </div>
 
             {/* SECONDARY ACTIONS */}
-            <div className="grid grid-cols-1 gap-4 shrink-0">
+            <div className="space-y-3">
                 <button
                     onClick={() => navigate('/mobile/manual-lookup')}
-                    className="w-full p-5 bg-slate-900 rounded-3xl border border-slate-800 flex items-center justify-center gap-3 text-slate-300 font-bold active:bg-slate-800 transition-colors shadow-sm"
+                    className="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center gap-3 text-slate-400 font-bold"
                 >
-                    <Keyboard size={20} className="text-slate-500" />
-                    Manual Entry
+                    <Keyboard size={18} /> Manual Lookup
                 </button>
 
                 <button
                     onClick={() => {
-                        if(window.confirm("Are you sure you want to unlink?")) {
+                        if(window.confirm("Unlink device?")) {
                             localStorage.clear();
                             navigate('/login');
                         }
                     }}
-                    className="w-full p-4 text-slate-600 text-sm font-bold flex items-center justify-center gap-2 active:text-red-500 transition-colors"
+                    className="w-full p-4 text-slate-600 text-xs font-bold flex items-center justify-center gap-2"
                 >
-                    <LogOut size={16} />
-                    Unlink Device
+                    <LogOut size={14} /> Unlink Device
                 </button>
             </div>
 
-            {/* ---  AMBIGUITY MODAL --- */}
+            {/* --- MODALS (Scanner / Ambiguity) Same as before --- */}
             {ambiguousData && (
-                <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-                    <div className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <AlertTriangle size={32} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white text-center mb-2">Ambiguous Scan</h3>
-                        <p className="text-slate-400 text-center text-sm mb-8 leading-relaxed">
-                            This code matches both a Purchase Order and a Product. Which one did you scan?
-                        </p>
-
+                <div className="fixed inset-0 bg-slate-950/90 z-[100] flex items-center justify-center p-6">
+                    {/* ... (Keep existing ambiguity modal logic, just navigate with state) ... */}
+                    <div className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-[2.5rem] p-8">
+                        <h3 className="text-white font-bold text-center mb-4">Select Type</h3>
                         <div className="space-y-3">
-                            <button
-                                onClick={() => navigate(`/mobile/process/${ambiguousData.poId}`)}
-                                className="w-full p-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-blue-500 transition-colors"
-                            >
-                                <div className="p-2 bg-white/10 rounded-lg"><FileText size={20}/></div>
-                                <div className="text-left">
-                                    <span className="block text-xs opacity-70 uppercase">Handle as</span>
-                                    Purchase Order
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => navigate(`/mobile/product/${ambiguousData.productId}`)}
-                                className="w-full p-4 bg-slate-800 text-white rounded-2xl font-bold flex items-center gap-4 active:bg-slate-700 transition-colors border border-slate-700"
-                            >
-                                <div className="p-2 bg-white/10 rounded-lg"><Package size={20}/></div>
-                                <div className="text-left">
-                                    <span className="block text-xs opacity-70 uppercase">Handle as</span>
-                                    Product SKU
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => setAmbiguousData(null)}
-                                className="w-full p-4 text-slate-500 text-sm font-bold active:text-white"
-                            >
-                                Cancel
-                            </button>
+                            <button onClick={() => navigate(`/mobile/process/${ambiguousData.poId}`)} className="w-full p-4 bg-blue-600 rounded-xl text-white font-bold">Purchase Order</button>
+                            <button onClick={() => navigate(`/mobile/product/${ambiguousData.productId}`)} className="w-full p-4 bg-slate-800 rounded-xl text-white font-bold">Product</button>
+                            <button onClick={() => setAmbiguousData(null)} className="w-full p-4 text-slate-500 font-bold">Cancel</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* SCANNER OVERLAY */}
             {showScanner && (
                 <QRScanner
                     onScan={handleSmartScan}
-                    title="Smart Scan"
-                    instruction="Point at PO or Product"
+                    title={`Scan in ${currentWarehouse.locationName}`}
+                    instruction="Point at PO or SKU"
                     status={scanStatus}
                     isProcessing={isProcessing}
                     onCancel={() => setShowScanner(false)}

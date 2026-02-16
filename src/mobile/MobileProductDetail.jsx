@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import MobileQuantityKeypad from '../components/MobileQuantityKeypad.jsx'; // Ensure path is correct!
+import MobileQuantityKeypad from '../components/MobileQuantityKeypad.jsx';
 import {
     ArrowLeft, Box, MapPin, Loader2, Edit3,
-    AlertCircle, Warehouse, ChevronDown
+    AlertCircle, Warehouse
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -12,35 +12,31 @@ const MobileProductDetail = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
 
-    const [product, setProduct] = useState(null);
-    const [warehouses, setWarehouses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // 1. GET CONTEXT
+    const currentWarehouse = JSON.parse(localStorage.getItem('currentWarehouse'));
 
-    const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [showKeypad, setShowKeypad] = useState(false);
 
     useEffect(() => {
+        // Safety: Redirect if no context
+        if (!currentWarehouse) {
+            navigate('/mobile/home');
+            return;
+        }
+
         if (productId) {
             fetchData();
         }
-    }, [productId]);
+    }, [productId, navigate]);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            // Parallel fetch: Product + Warehouses
-            const [prodRes, whRes] = await Promise.all([
-                api.get(`/api/core/products/${productId}`),
-                api.get('/api/core/warehouses')
-            ]);
-
+            // Optimization: Only fetch product, we already know our warehouse
+            const prodRes = await api.get(`/api/core/products/${productId}`);
             setProduct(prodRes.data);
-            setWarehouses(whRes.data || []);
-
-            // Auto-select first warehouse if available
-            if (whRes.data && whRes.data.length > 0) {
-                setSelectedWarehouseId(whRes.data[0].warehouseId);
-            }
         } catch (err) {
             console.error("Failed to load product", err);
             toast.error("Product not found");
@@ -51,45 +47,34 @@ const MobileProductDetail = () => {
     };
 
     const handleStockAdjustment = async (newQty) => {
-        if (!selectedWarehouseId) {
-            toast.error("Select a warehouse first");
-            return;
-        }
+        if (!currentWarehouse) return;
 
         try {
             setShowKeypad(false);
 
             await api.post(`/api/core/inventory/adjust`, {
                 productId: product.id,
-                warehouseId: selectedWarehouseId,
+                warehouseId: currentWarehouse.warehouseId, // Use Context
                 newQuantity: newQty,
                 reason: "Mobile Cycle Count"
             });
 
             toast.success("Stock Updated!");
-            fetchData(); // Refresh to confirm
+            fetchData();
         } catch (err) {
             console.error(err);
             toast.error("Update failed");
         }
     };
 
-    // ✅ SAFE CHECK: Prevents crash if inventory is null
+    // 2. FILTER STOCK BY CONTEXT
     const getCurrentWarehouseStock = () => {
         if (!product || !product.inventory) return 0;
 
-        // Find entry for selected warehouse
         const entry = product.inventory.find(i =>
-            // Handle both Number and String mismatch just in case
-            Number(i.warehouseId) === Number(selectedWarehouseId)
+            Number(i.warehouseId) === Number(currentWarehouse.warehouseId)
         );
         return entry ? entry.quantity : 0;
-    };
-
-    const getSelectedWarehouseName = () => {
-        if (!warehouses.length) return 'No Warehouse';
-        const wh = warehouses.find(w => w.warehouseId === Number(selectedWarehouseId));
-        return wh ? wh.name : 'Unknown';
     };
 
     if (loading) return (
@@ -105,7 +90,7 @@ const MobileProductDetail = () => {
         <div className="flex flex-col h-full bg-slate-950 text-white relative z-0">
             {/* Header */}
             <div className="p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-10">
-                <button onClick={() => navigate('/mobile/home')} className="flex items-center gap-2 text-slate-400 mb-4">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 mb-4">
                     <ArrowLeft size={18} /> <span>Back</span>
                 </button>
                 <h1 className="text-2xl font-black uppercase tracking-tight leading-tight">
@@ -116,33 +101,18 @@ const MobileProductDetail = () => {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-32">
 
-                {/* 1. WAREHOUSE SELECTOR */}
-                {warehouses.length > 0 ? (
-                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">
+                {/* 1. STATIC CONTEXT CARD (Replaces Dropdown) */}
+                <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">
                             Working Location
                         </label>
-                        <div className="relative">
-                            <Warehouse className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                            <select
-                                value={selectedWarehouseId}
-                                onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-700 rounded-xl py-4 pl-12 pr-10 text-white appearance-none focus:border-blue-500 outline-none font-bold"
-                            >
-                                {warehouses.map(wh => (
-                                    <option key={wh.warehouseId} value={wh.warehouseId}>
-                                        {wh.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                        <div className="flex items-center gap-2 text-white font-bold text-lg">
+                            <MapPin size={18} className="text-blue-500" />
+                            {currentWarehouse.locationName}
                         </div>
                     </div>
-                ) : (
-                    <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl text-red-400 text-sm font-bold flex items-center gap-2">
-                        <AlertTriangle size={16} /> No Warehouses configured.
-                    </div>
-                )}
+                </div>
 
                 {/* 2. STOCK CARD */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[2rem] border border-slate-700 shadow-xl">
@@ -157,7 +127,7 @@ const MobileProductDetail = () => {
                             {getCurrentWarehouseStock()}
                         </span>
                         <span className="text-slate-500 font-bold uppercase text-xs">
-                            Units in {getSelectedWarehouseName().split(' ')[0]}
+                            Units
                         </span>
                     </div>
                 </div>
@@ -165,7 +135,7 @@ const MobileProductDetail = () => {
                 {/* Quick Info */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-900 p-5 rounded-3xl border border-slate-800">
-                        <MapPin className="text-amber-500 mb-3" size={20} />
+                        <Warehouse className="text-amber-500 mb-3" size={20} />
                         <span className="block text-[10px] text-slate-500 uppercase font-bold">Bin Loc</span>
                         <span className="text-lg font-bold text-slate-200">{product.binLocation || 'N/A'}</span>
                     </div>
@@ -181,12 +151,7 @@ const MobileProductDetail = () => {
             <div className="p-4 bg-slate-900 border-t border-slate-800 sticky bottom-0 z-10">
                 <button
                     onClick={() => setShowKeypad(true)}
-                    disabled={!selectedWarehouseId}
-                    className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg ${
-                        selectedWarehouseId
-                            ? 'bg-blue-600 text-white active:bg-blue-500 shadow-blue-900/20'
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    }`}
+                    className="w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-colors shadow-lg bg-blue-600 text-white active:bg-blue-500 shadow-blue-900/20"
                 >
                     <Edit3 size={18} />
                     Adjust Count
@@ -198,7 +163,7 @@ const MobileProductDetail = () => {
                 <MobileQuantityKeypad
                     productName={product.name}
                     sku={product.sku}
-                    warehouseName={getSelectedWarehouseName()}
+                    warehouseName={currentWarehouse.locationName}
                     maxExpected={getCurrentWarehouseStock()}
                     initialValue={0}
                     onConfirm={handleStockAdjustment}

@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
-    ArrowLeft,
-    Search,
-    FileText,
-    Package,
-    ChevronRight,
-    Loader2,
-    Delete, // Backspace icon
-    CornerDownLeft // Enter/Return icon
+    ArrowLeft, Search, FileText, Package, ChevronRight, Loader2, Delete, CornerDownLeft, MapPin
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MobileManualLookup = () => {
     const navigate = useNavigate();
+
+    // GET CONTEXT
+    const currentWarehouse = JSON.parse(localStorage.getItem('currentWarehouse'));
+
     const [query, setQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [result, setResult] = useState(null);
 
-    // --- SEARCH LOGIC (Reused) ---
+    useEffect(() => {
+        if (!currentWarehouse) navigate('/mobile/home');
+    }, []);
+
+    // ... (Keep existing search logic executeSearch / handleKeyPress) ...
     const executeSearch = async (searchTerm) => {
         if (!searchTerm.trim()) return;
 
@@ -40,46 +41,38 @@ const MobileManualLookup = () => {
         }
     };
 
-    // --- KEYPAD LOGIC ---
     const handleKeyPress = (key) => {
-        // 1. Handle "GO" (Search)
-        if (key === 'ENTER') {
-            executeSearch(query);
-            return;
-        }
-
-        // 2. Handle Backspace
-        if (key === 'BACKSPACE') {
-            setQuery(prev => prev.slice(0, -1));
-            return;
-        }
-
-        // 3. Handle Prefixes (PO- / SKU-)
-        // Logic: If user clicks "PO-", we assume they want to start a PO search.
-        // We replace any existing letters but keep numbers if they typed numbers first?
-        // Simple logic: Just Append for now, or Replace if empty.
+        if (key === 'ENTER') { executeSearch(query); return; }
+        if (key === 'BACKSPACE') { setQuery(prev => prev.slice(0, -1)); return; }
         if (key === 'PO-' || key === 'SKU-') {
             if (query.startsWith('PO-') || query.startsWith('SKU-')) {
                 const numberPart = query.split('-')[1] || '';
                 setQuery(key + numberPart);
             } else {
-                // If just numbers (e.g. "102"), prepend the prefix
                 setQuery(key + query);
             }
             return;
         }
-
-        // 4. Handle Numbers
         setQuery(prev => prev + key);
     };
 
+
     return (
         <div className="flex flex-col h-screen bg-slate-950 text-white">
-            {/* 1. COMPACT HEADER */}
+            {/* 1. HEADER WITH CONTEXT */}
             <div className="p-4 bg-slate-900 border-b border-slate-800 shrink-0">
-                <button onClick={() => navigate('/mobile/home')} className="flex items-center gap-2 text-slate-400 mb-2">
+                <button onClick={() => navigate('/mobile/home')} className="flex items-center gap-2 text-slate-400 mb-4">
                     <ArrowLeft size={18} /> <span>Back</span>
                 </button>
+
+                {/* Context Indicator */}
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Searching in</span>
+                    <span className="text-xs font-bold text-blue-400 flex items-center gap-1 bg-blue-400/10 px-2 py-0.5 rounded">
+                        <MapPin size={10} /> {currentWarehouse?.locationName}
+                    </span>
+                </div>
+
                 <div className="relative">
                     <input
                         type="text"
@@ -97,13 +90,13 @@ const MobileManualLookup = () => {
                 </div>
             </div>
 
-            {/* 2. RESULTS AREA (Scrollable Middle) */}
+            {/* 2. RESULTS AREA (Scrollable Middle) - NO CHANGES NEEDED BELOW THIS */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* ... (Existing Results Logic) ... */}
                 {result && result.scanType !== 'UNKNOWN' ? (
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-1">Best Match</p>
 
-                        {/* PO CARD */}
                         {(result.scanType === 'PO' || result.scanType === 'AMBIGUOUS') && (
                             <button
                                 onClick={() => navigate(`/mobile/process/${result.poId}`)}
@@ -121,7 +114,6 @@ const MobileManualLookup = () => {
                             </button>
                         )}
 
-                        {/* PRODUCT CARD */}
                         {(result.scanType === 'PRODUCT' || result.scanType === 'AMBIGUOUS') && (
                             <button
                                 onClick={() => navigate(`/mobile/product/${result.productId}`)}
@@ -151,7 +143,7 @@ const MobileManualLookup = () => {
                 )}
             </div>
 
-            {/* 3. CUSTOM KEYPAD (Fixed Bottom) */}
+            {/* 3. CUSTOM KEYPAD (Fixed Bottom)  */}
             <div className="bg-slate-900 p-4 pb-8 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-slate-800 z-10 shrink-0">
                 {/* Prefix Row */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
