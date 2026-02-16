@@ -8,6 +8,7 @@ import { Progress } from '../../components/ui/progress.jsx';
 import { Button } from '../../components/ui/button.jsx';
 import InboxService from '../../services/inbox.service.js';
 import { FileText } from 'lucide-react';
+import toast from "react-hot-toast";
 
 
 import SockJS from 'sockjs-client';
@@ -136,7 +137,7 @@ export default function InboxPage() {
             setActiveAttachment({ ...result, name: fileName });
         } catch (error) {
             console.error("Failed to load attachment", error);
-            alert("Could not load attachment.");
+            toast.error("Could not load attachment.");
         }
     };
 

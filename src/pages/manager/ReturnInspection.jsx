@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Loader2, Check, X, ArrowLeft, Hash, User, ClipboardList, Save } from 'lucide-react';
+import toast from "react-hot-toast";
 
 export function ReturnInspection() {
     const { id } = useParams();
@@ -51,10 +52,10 @@ export function ReturnInspection() {
             };
 
             await api.post(`/api/core/returns/${id}/approve`, payload);
-            alert(`Return ${decision === 'APPROVED' ? 'Authorized' : 'Rejected'} successfully.`);
+            toast.error(`Return ${decision === 'APPROVED' ? 'Authorized' : 'Rejected'} successfully.`);
             navigate('/manager/returns');
         } catch (err) {
-            alert("Error updating return: " + (err.response?.data?.message || "Server Error"));
+            toast.error("Error updating return: " + (err.response?.data?.message || "Server Error"));
         } finally {
             setIsSubmitting(false);
         }

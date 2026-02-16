@@ -8,6 +8,7 @@ import { Badge } from '../../components/ui/badge'
 import { Label } from '../../components/ui/label'
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group'
 import { Checkbox } from '../../components/ui/checkbox'
+import toast from "react-hot-toast";
 
 const getStatusBadge = (status) => {
     const statusConfig = {
@@ -64,10 +65,10 @@ export function ReturnsInspection() {
                 receivedBy: localStorage.getItem('userName') || 'Staff'
             })
 
-            alert("Inspection saved to database.")
+            toast.error("Inspection saved to database.")
             fetchData() // Refresh list
         } catch (err) {
-            alert("Save failed: " + (err.response?.data?.message || "Check connection"))
+            toast.error("Save failed: " + (err.response?.data?.message || "Check connection"))
         } finally {
             setSubmitting(false)
         }

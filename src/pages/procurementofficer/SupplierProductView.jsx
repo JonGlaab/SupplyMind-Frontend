@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { ArrowLeft, Clock, DollarSign, Package, Trash2, Plus, X, Truck, Loader2, Save } from 'lucide-react';
+import toast from "react-hot-toast";
 
 const SupplierProductView = () => {
     const { supplierId } = useParams();
@@ -66,7 +67,7 @@ const SupplierProductView = () => {
             setNewLink({ productId: '', costPrice: '', leadTimeDays: '' });
             fetchSupplierProducts(); // Refresh list
         } catch (err) {
-            alert("Failed to link product. It might already be assigned to this supplier.");
+            toast.error("Failed to link product. It might already be assigned to this supplier.");
         }
     };
 
@@ -78,7 +79,7 @@ const SupplierProductView = () => {
             });
             fetchSupplierProducts();
         } catch (err) {
-            alert("Update failed.");
+            toast.error("Update failed.");
         }
     };
 
