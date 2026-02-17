@@ -46,16 +46,19 @@ export default function FinanceDashboard() {
       setPos(data);
 
       // load invoice status for each PO
-      const invPairs = await Promise.all(
-        data.map(async (po) => {
-          const inv = await getInvoiceByPo(po.poId);
-          return [po.poId, inv];
-        })
-      );
+      const invResults = await Promise.allSettled(
+  data.map(async (po) => [po.poId, await getInvoiceByPo(po.poId)])
+);
 
-      const map = {};
-      invPairs.forEach(([poId, inv]) => (map[poId] = inv));
-      setInvoiceMap(map);
+const map = {};
+invResults.forEach((r) => {
+  if (r.status === "fulfilled") {
+    const [poId, inv] = r.value;
+    map[poId] = inv; // inv can be null
+  }
+});
+setInvoiceMap(map);
+
 
       // ✅ load latest payment per invoice from DB (survives refresh)
       const invoiceIds = Object.values(map)
@@ -505,10 +508,8 @@ export default function FinanceDashboard() {
             </div>
 
             <button
-              onClick={() => {
-                setOpenTimelineSupplierId(null);
-                setOpenTimelineSupplierName(null);
-              }}
+              onClick={() => navigate(`/finance/timeline/${supplierId}?name=${encodeURIComponent(po.supplierName || "")}`)}
+
               className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
             >
               Close

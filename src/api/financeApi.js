@@ -11,9 +11,14 @@ export const createInvoiceFromPo = async (poId) => {
 };
 
 export const getInvoiceByPo = async (poId) => {
-  const res = await axios.get(`/api/core/finance/invoices/by-po/${poId}`);
-  return res.data; // can be null
+  const res = await axios.get(`/api/core/finance/invoices/by-po/${poId}`, {
+    validateStatus: (s) => (s >= 200 && s < 300) || s === 204
+  });
+
+  if (res.status === 204) return null;
+  return res.data;
 };
+
 
 export const approveInvoice = async (invoiceId) => {
   await axios.post(`/api/core/finance/invoices/${invoiceId}/approve`);

@@ -51,6 +51,8 @@ import MobileInboundList from './mobile/MobileInboundList.jsx';
 import SuppliersPage from "./pages/SuppliersPage";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import "./api/axiosConfig";
+import PaymentTimelinePage from "./pages/PaymentTimelinePage.jsx";
+
 
 const StripePayPage = lazy(() => import('./pages/StripePayPage'));
 
@@ -78,6 +80,9 @@ const App = () => {
 
             <Route path="/" element={<DashboardLayout />}>
                 <Route index element={<Navigate to={getRedirectPath()} replace />} />
+
+                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
+
 
                 {/* basic */}
                 <Route path="settings" element={<Settings />} />
