@@ -57,25 +57,8 @@ const DashboardLayout = () => {
     }, []);
 
     const navItems = [
-        // ADMIN-ONLY: CROSS-ROLE VIEW (THE "GOD MODE")
-        ...(userRole === 'ADMIN' ? [
-            { type: 'divider', label: 'System Shadow Views' },
-            {
-                label: 'Manager Perspective',
-                path: '/manager/dashboard',
-            },
-            {
-                label: 'Procurement Perspective',
-                path: '/procurement/dashboard',
-            },
-            {
-                label: 'Warehouse Perspective',
-                path: '/staff/dashboard',
-            }
-        ] : []),
-
         // 1. PRIMARY DASHBOARDS
-        ...(userRole === 'ADMIN' ? [{ label: 'Admin System', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
+        ...(userRole === 'ADMIN' ? [{ label: 'Admin Dashboard', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
         ...(userRole === 'MANAGER' ? [{ label: 'Manager Dashboard', path: '/manager/dashboard', icon: <LayoutDashboard size={20} /> }] : []),
         ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
         ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> }] : []),
