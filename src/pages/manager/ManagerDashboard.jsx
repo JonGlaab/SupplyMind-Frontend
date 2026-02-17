@@ -23,7 +23,7 @@ export function ManagerDashboard() {
                 if (productList && productList.length > 0) {
                     setSelectedProduct(productList[0]);
                 } else {
-                    setLoading(false); // No products, stop loading
+                    setLoading(false);
                 }
             } catch (error) {
                 console.error("Failed to fetch products:", error);
@@ -41,24 +41,20 @@ export function ManagerDashboard() {
         const fetchData = async (product) => {
             setLoading(true);
             setForecastError(null);
-            setForecastData([]); // Clear previous data
+            setForecastData([]);
             try {
-                // 1. Fetch Aggregated Forecast Data
                 const forecastRes = await api.get(`/api/intel/demand/${product.productId}`);
                 const { history, predictedDemandNext30Days, trend } = forecastRes.data;
 
-                // 2. Use the product data we already have
                 const currentStock = product.qtyOnHand || 0;
                 const minLevel = product.minStockLevel || 0;
 
-                // 3. Map historical data
                 const historicalData = history.map(p => ({
                     date: p.date,
                     actualValue: p.quantity,
                     forecastValue: null
                 }));
 
-                // 4. Combine with prediction
                 setForecastData([
                     ...historicalData,
                     {
@@ -68,7 +64,6 @@ export function ManagerDashboard() {
                     }
                 ]);
 
-                // 5. Calculate KPIs
                 const stockoutRisk = currentStock <= minLevel ? 1 : 0;
                 setKpis({
                     stockouts: stockoutRisk,
@@ -76,7 +71,6 @@ export function ManagerDashboard() {
                     trend: trend
                 });
 
-                // 6. Alert logic
                 if (stockoutRisk > 0) {
                     setAlerts([{
                         id: Date.now(),

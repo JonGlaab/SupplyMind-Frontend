@@ -46,7 +46,7 @@ const SupplierProductView = () => {
 
     const fetchMasterProducts = async () => {
         try {
-            const res = await api.get('/api/core/products'); // Adjust path to your ProductController
+            const res = await api.get('/api/core/products');
             // If your product endpoint is paginated, use res.data.content
             setMasterProducts(Array.isArray(res.data) ? res.data : res.data.content || []);
         } catch (err) {
@@ -97,7 +97,6 @@ const SupplierProductView = () => {
 
     return (
         <div className="p-6 space-y-6">
-            {/* Header Section */}
             <div className="flex items-center justify-between border-b pb-6">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full">
@@ -121,7 +120,6 @@ const SupplierProductView = () => {
                 )}
             </div>
 
-            {/* Quick Add Form */}
             {showAddForm && (
                 <Card className="border-2 border-blue-100 bg-blue-50/30">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -172,7 +170,6 @@ const SupplierProductView = () => {
                 </Card>
             )}
 
-            {/* Existing Catalog Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {products.map((item) => (
                     <Card key={item.id} className="shadow-sm border-slate-200">
