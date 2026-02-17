@@ -115,6 +115,8 @@ const App = () => {
                 <Route path="manager/po-approval" element={<PurchaseOrderApproval />} />
                 <Route path="manager/returns-approval" element={<ReturnRequestApproval />} />
                 <Route path="manager/returns-approval/:id" element={<ReturnInspection />} />
+                <Route path="/suppliers" element={<SuppliersPage />} />
+                <Route path="/finance" element={<FinanceDashboard />} />
             </Route>
 
             <Route
@@ -136,9 +138,6 @@ const App = () => {
                 <Route path="transfer" element={<MobileTransfer />} />
                 <Route path="inbound" element={<MobileInboundList />} />
             </Route>
-
-            <Route path="/suppliers" element={<SuppliersPage />} />
-            <Route path="/finance" element={<FinanceDashboard />} />
 
             <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
         </Routes>

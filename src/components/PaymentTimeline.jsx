@@ -18,6 +18,10 @@ export default function PaymentTimeline({ supplierId, supplierName }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // ✅ NEW: filters
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   useEffect(() => {
     if (!supplierId) return;
 
@@ -32,16 +36,43 @@ export default function PaymentTimeline({ supplierId, supplierName }) {
     })();
   }, [supplierId]);
 
+  // ✅ NEW: filtered items
+  const filteredItems = useMemo(() => {
+    const query = q.trim().toLowerCase();
+
+    return items.filter((it) => {
+      const matchesStatus =
+        statusFilter === "ALL" || String(it.status || "").toUpperCase() === statusFilter;
+
+      if (!query) return matchesStatus;
+
+      const haystack = [
+        it.supplierPaymentId,
+        it.poId,
+        it.invoiceId,
+        it.stripePaymentIntentId
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return matchesStatus && haystack.includes(query);
+    });
+  }, [items, q, statusFilter]);
+
   const groups = useMemo(() => {
     // group by day (YYYY-MM-DD)
     const g = {};
-    for (const it of items) {
+    for (const it of filteredItems) {
       const key = it.createdAt ? new Date(it.createdAt).toISOString().slice(0, 10) : "unknown";
       if (!g[key]) g[key] = [];
       g[key].push(it);
     }
     return Object.entries(g).sort((a, b) => (a[0] < b[0] ? 1 : -1));
-  }, [items]);
+  }, [filteredItems]);
+
+  const shownCount = filteredItems.length;
+  const totalCount = items.length;
 
   return (
     <div className="bg-white border rounded-lg p-5 shadow-sm">
@@ -52,11 +83,48 @@ export default function PaymentTimeline({ supplierId, supplierName }) {
             Supplier: <span className="font-medium">{supplierName || supplierId}</span>
           </div>
         </div>
-        <div className="text-sm text-gray-500">{loading ? "Loading..." : `${items.length} events`}</div>
+
+        <div className="text-sm text-gray-500">
+          {loading ? "Loading..." : q.trim() || statusFilter !== "ALL" ? `${shownCount} of ${totalCount} events` : `${totalCount} events`}
+        </div>
       </div>
 
-      {items.length === 0 && !loading ? (
-        <div className="text-sm text-gray-600">No payments found for this supplier.</div>
+      {/* ✅ NEW: Search + Status Filter */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search (PO #, Invoice #, Payment #, Stripe PI)"
+          className="border rounded px-3 py-2 text-sm w-full md:w-96"
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border rounded px-3 py-2 text-sm"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="PAID">PAID</option>
+          <option value="SCHEDULED">SCHEDULED</option>
+          <option value="PROCESSING">PROCESSING</option>
+          <option value="FAILED">FAILED</option>
+        </select>
+
+        <button
+          onClick={() => {
+            setQ("");
+            setStatusFilter("ALL");
+          }}
+          className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm"
+        >
+          Clear
+        </button>
+      </div>
+
+      {filteredItems.length === 0 && !loading ? (
+        <div className="text-sm text-gray-600">
+          {items.length === 0 ? "No payments found for this supplier." : "No results match your filters."}
+        </div>
       ) : (
         <div className="relative pl-6">
           {/* vertical line */}

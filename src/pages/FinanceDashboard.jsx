@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getReadyPos,
   createInvoiceFromPo,
@@ -12,6 +12,7 @@ import {
 import { getConnectStatus, mockEnableConnect } from "../api/supplierConnectApi";
 import PaymentTimeline from "../components/PaymentTimeline";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function FinanceDashboard() {
   const [pos, setPos] = useState([]);
@@ -31,6 +32,11 @@ export default function FinanceDashboard() {
   // ✅ timeline UI state
   const [openTimelineSupplierId, setOpenTimelineSupplierId] = useState(null);
   const [openTimelineSupplierName, setOpenTimelineSupplierName] = useState(null);
+
+  // ✅ Search + filters
+  const [q, setQ] = useState("");
+  const [connectFilter, setConnectFilter] = useState("ALL"); // ALL | ENABLED | NOT_ENABLED
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState("ALL"); // ALL | NO_INVOICE | PENDING_APPROVAL | APPROVED | SCHEDULED | PARTIALLY_PAID | PAID | FAILED | PROCESSING
 
   const load = async () => {
     try {
@@ -112,14 +118,14 @@ export default function FinanceDashboard() {
     const res = await createInvoiceFromPo(poId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    toast.error(`Invoice created: ${res.invoiceId}`);
+    toast.success(`Invoice #${res.invoiceId} has been successfully created.`);
   };
 
   const handleApprove = async (poId, invoiceId) => {
     await approveInvoice(invoiceId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    toast.error("Invoice approved");
+    toast.success("Invoice has been approved successfully.");
   };
 
   const handleSchedule = async (poId, invoiceId, amount) => {
@@ -134,7 +140,7 @@ export default function FinanceDashboard() {
 
     // save so we can execute even before reload
     setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: supplierPaymentId }));
-    toast.error(`Payment scheduled. id=${supplierPaymentId}`);
+    toast.success("Payment has been scheduled successfully.");
 
     // refresh invoice + latest payment info
     const inv = await getInvoiceByPo(poId);
@@ -157,6 +163,8 @@ export default function FinanceDashboard() {
     }
   };
 
+  const navigate = useNavigate();
+
   const handleExecute = async (poId, invoiceId) => {
     const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
@@ -165,23 +173,25 @@ export default function FinanceDashboard() {
       return;
     }
 
-    await executePayment(supplierPaymentId);
-    toast.error("Payment executed");
+    const res = await executePayment(supplierPaymentId);
 
-    // refresh invoice
+    if (res?.status === "PAID") {
+      toast.success("Payment succeeded ✅");
+    } else if (res?.status === "PROCESSING") {
+      toast("Payment is processing ⏳ (try refresh in a moment)");
+    } else {
+      toast.error("Payment failed ❌: " + (res?.message || ""));
+    }
+
+    // ✅ reload invoice + payment list so Paid/Remaining updates on UI
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
 
-    // refresh latest payment info
     const payments = await getPaymentsByInvoice(invoiceId);
     const latest = payments?.[0] || null;
 
     if (latest) {
-      setScheduledPaymentMap((prev) => ({
-        ...prev,
-        [invoiceId]: latest.supplierPaymentId
-      }));
-
+      setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: latest.supplierPaymentId }));
       setPaymentInfoMap((prev) => ({
         ...prev,
         [invoiceId]: {
@@ -209,6 +219,39 @@ export default function FinanceDashboard() {
     return "bg-gray-500";
   };
 
+  // ✅ Filtered POs (search + connect filter + invoice status filter)
+  const filteredPos = useMemo(() => {
+    const query = q.trim().toLowerCase();
+
+    return pos.filter((po) => {
+      const inv = invoiceMap[po.poId] || null;
+
+      const supplierId = po.supplierId;
+      const connectStatus = supplierId ? connectMap[supplierId] : "UNKNOWN";
+      const connectEnabled = connectStatus === "ENABLED";
+
+      const matchesConnect =
+        connectFilter === "ALL" ||
+        (connectFilter === "ENABLED" && connectEnabled) ||
+        (connectFilter === "NOT_ENABLED" && !connectEnabled);
+
+      const invStatus = inv?.status ? String(inv.status).toUpperCase() : "NO_INVOICE";
+      const matchesInvoiceStatus =
+        invoiceStatusFilter === "ALL" ||
+        (invoiceStatusFilter === "NO_INVOICE" && invStatus === "NO_INVOICE") ||
+        (invoiceStatusFilter !== "NO_INVOICE" && invStatus === invoiceStatusFilter);
+
+      if (!query) return matchesConnect && matchesInvoiceStatus;
+
+      const haystack = [po.poId, po.supplierId, po.supplierName]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return matchesConnect && matchesInvoiceStatus && haystack.includes(query);
+    });
+  }, [pos, q, connectFilter, invoiceStatusFilter, connectMap, invoiceMap]);
+
   if (loading) {
     return <div className="p-8">Loading...</div>;
   }
@@ -217,16 +260,77 @@ export default function FinanceDashboard() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Finance Dashboard</h1>
-        <button
-          onClick={load}
-          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/stripe-pay")}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+          >
+            Connect your dashboard
+          </button>
+
+          <button
+            onClick={load}
+            className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* ✅ Search + filters */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search by PO #, Supplier name, Supplier ID"
+          className="border rounded px-3 py-2 text-sm w-full md:w-96"
+        />
+
+        <select
+          value={connectFilter}
+          onChange={(e) => setConnectFilter(e.target.value)}
+          className="border rounded px-3 py-2 text-sm"
         >
-          Refresh
+          <option value="ALL">All suppliers</option>
+          <option value="ENABLED">Connect enabled</option>
+          <option value="NOT_ENABLED">Connect not enabled</option>
+        </select>
+
+        <select
+          value={invoiceStatusFilter}
+          onChange={(e) => setInvoiceStatusFilter(e.target.value)}
+          className="border rounded px-3 py-2 text-sm"
+        >
+          <option value="ALL">All invoice statuses</option>
+          <option value="NO_INVOICE">No invoice</option>
+          <option value="PENDING_APPROVAL">Pending approval</option>
+          <option value="APPROVED">Approved</option>
+          <option value="SCHEDULED">Scheduled</option>
+          <option value="PARTIALLY_PAID">Partially paid</option>
+          <option value="PAID">Paid</option>
+          <option value="FAILED">Failed</option>
+          <option value="PROCESSING">Processing</option>
+        </select>
+
+        <button
+          onClick={() => {
+            setQ("");
+            setConnectFilter("ALL");
+            setInvoiceStatusFilter("ALL");
+          }}
+          className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm"
+        >
+          Clear
         </button>
+
+        <div className="ml-auto text-sm text-gray-500 flex items-center">
+          Showing {filteredPos.length} of {pos.length}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {pos.map((po) => {
+        {filteredPos.map((po) => {
           const inv = invoiceMap[po.poId];
 
           // ✅ DTO mapping
@@ -357,7 +461,14 @@ export default function FinanceDashboard() {
                     )}
 
                     <SchedulePaymentInline
-                      disabled={!connectEnabled || !(inv.status === "APPROVED" || inv.status === "SCHEDULED")}
+                      disabled={
+                        !connectEnabled ||
+                        !(
+                          inv.status === "APPROVED" ||
+                          inv.status === "SCHEDULED" ||
+                          inv.status === "PARTIALLY_PAID"
+                        )
+                      }
                       onSchedule={(amount) => handleSchedule(po.poId, inv.invoiceId, amount)}
                       connectEnabled={connectEnabled}
                     />
@@ -404,10 +515,7 @@ export default function FinanceDashboard() {
             </button>
           </div>
 
-          <PaymentTimeline
-            supplierId={openTimelineSupplierId}
-            supplierName={openTimelineSupplierName}
-          />
+          <PaymentTimeline supplierId={openTimelineSupplierId} supplierName={openTimelineSupplierName} />
         </div>
       )}
     </div>

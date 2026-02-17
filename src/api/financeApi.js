@@ -26,10 +26,14 @@ export const schedulePayment = async (payload) => {
 };
 
 export const executePayment = async (supplierPaymentId) => {
-  await axios.post(
+  const res = await axios.post(
     `/api/core/finance/payments/${supplierPaymentId}/execute`
   );
+
+  // res.data = ExecutePaymentResponseDTO
+  return res.data;
 };
+
 
 export const getPaymentsByInvoice = async (invoiceId) => {
   const res = await axios.get(`/api/core/finance/invoices/${invoiceId}/payments`);
