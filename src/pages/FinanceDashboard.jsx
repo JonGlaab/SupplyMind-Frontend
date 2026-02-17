@@ -113,14 +113,16 @@ export default function FinanceDashboard() {
     const res = await createInvoiceFromPo(poId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    toast.error(`Invoice created: ${res.invoiceId}`);
+    toast.success(`Invoice #${res.invoiceId} has been successfully created.`);
+
   };
 
   const handleApprove = async (poId, invoiceId) => {
     await approveInvoice(invoiceId);
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
-    toast.error("Invoice approved");
+    toast.success("Invoice has been approved successfully.");
+
   };
 
   const handleSchedule = async (poId, invoiceId, amount) => {
@@ -135,7 +137,8 @@ export default function FinanceDashboard() {
 
     // save so we can execute even before reload
     setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: supplierPaymentId }));
-    toast.error(`Payment scheduled. id=${supplierPaymentId}`);
+    toast.success("Payment has been scheduled successfully.");
+
 
     // refresh invoice + latest payment info
     const inv = await getInvoiceByPo(poId);
