@@ -12,6 +12,7 @@ import {
 import { getConnectStatus, mockEnableConnect } from "../api/supplierConnectApi";
 import PaymentTimeline from "../components/PaymentTimeline";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function FinanceDashboard() {
   const [pos, setPos] = useState([]);
@@ -157,6 +158,9 @@ export default function FinanceDashboard() {
     }
   };
 
+  const navigate = useNavigate();
+
+
   const handleExecute = async (poId, invoiceId) => {
     const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
@@ -217,15 +221,26 @@ export default function FinanceDashboard() {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Finance Dashboard</h1>
-        <button
-          onClick={load}
-          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
-        >
-          Refresh
-        </button>
-      </div>
+     <div className="flex items-center justify-between mb-6">
+  <h1 className="text-2xl font-bold">Finance Dashboard</h1>
+
+  <div className="flex gap-2">
+    <button
+      onClick={() => navigate("/stripe-pay")}
+      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+    >
+      Connect your dashboard
+    </button>
+
+    <button
+      onClick={load}
+      className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded"
+    >
+      Refresh
+    </button>
+  </div>
+</div>
+
 
       <div className="grid grid-cols-1 gap-4">
         {pos.map((po) => {
