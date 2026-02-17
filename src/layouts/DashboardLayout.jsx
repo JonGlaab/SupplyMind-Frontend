@@ -184,7 +184,7 @@ const DashboardLayout = () => {
                             {userRole?.replace('_', ' ')}
                         </Badge>
                         {/* ONLY SHOW INBOX TO NON-STAFF ROLES */}
-                        {userRole !== 'STAFF' && (
+                        {userRole === 'MANAGER' && (
                             <button
                                 onClick={() => navigate('/inbox')}
                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors relative"
@@ -194,7 +194,9 @@ const DashboardLayout = () => {
                             </button>
                         )}
 
+                        {userRole === 'MANAGER' && (
                         <NotificationBell />
+                            )}
 
                         <div className="h-9 w-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm border-2 border-white">
                             {initials}
