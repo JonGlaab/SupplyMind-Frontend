@@ -52,9 +52,6 @@ import SuppliersPage from "./pages/SuppliersPage";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import "./api/axiosConfig";
 
-
-
-
 const StripePayPage = lazy(() => import('./pages/StripePayPage'));
 
 const App = () => {

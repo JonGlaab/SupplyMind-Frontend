@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import DesktopLoginQR from '../components/DesktopLoginQR.jsx';
@@ -48,7 +48,6 @@ const Login = () => {
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
 
     const handleSubmit = async (e) => {
 
@@ -118,14 +117,12 @@ const Login = () => {
         }
     };
 
-
     return (
 
         <div className="login-page min-h-screen w-full flex flex-col items-center justify-center p-6">
 
             {/* Background */}
             <div className="login-background" />
-
 
             {/* LOGO BIG CENTER */}
             <div className="login-logo-wrapper relative z-10">
@@ -137,8 +134,6 @@ const Login = () => {
                 />
 
             </div>
-
-
 
             {/* LOGIN GRID */}
             <div className="relative z-10 grid w-full max-w-5xl grid-cols-1 md:grid-cols-2 gap-10">
@@ -158,7 +153,6 @@ const Login = () => {
 
                     </CardHeader>
 
-
                     <CardContent>
 
                         {error && (
@@ -169,7 +163,6 @@ const Login = () => {
                             </div>
 
                         )}
-
 
                         <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -202,7 +195,6 @@ const Login = () => {
 
                             </div>
 
-
                             {/* PASSWORD */}
                             <div className="space-y-2">
 
@@ -232,7 +224,6 @@ const Login = () => {
 
                             </div>
 
-
                             <Button
                                 type="submit"
                                 className="w-full text-base font-semibold"
@@ -251,7 +242,6 @@ const Login = () => {
 
                     </CardContent>
 
-
                     {/* CENTERED FOOTER */}
                     <CardFooter className="flex justify-center">
 
@@ -264,8 +254,6 @@ const Login = () => {
                     </CardFooter>
 
                 </Card>
-
-
 
                 {/* RIGHT CARD */}
                 <Card className="bg-slate-950 text-white border-slate-800 shadow-2xl flex flex-col justify-center items-center p-10">

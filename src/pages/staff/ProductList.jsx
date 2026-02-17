@@ -31,9 +31,7 @@ const ProductList = () => {
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-2xl font-bold">Product Catalog</CardTitle>
 
-                    {/* TODO: Remove ADMIN for production */}
-                    {/* --- DEVELOPMENT: Allow Admin to see Add button --- */}
-                    {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN') && (
+                    {(userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER') && (
                         <Button onClick={() => setIsAddModalOpen(true)}>
                             Add New Product
                         </Button>
@@ -79,7 +77,6 @@ const ProductList = () => {
                 </CardContent>
             </Card>
 
-            {/* Render the modal if a product is selected */}
             <ProductDetailsModal
                 product={selectedProduct}
                 isOpen={!!selectedProduct}

@@ -105,7 +105,6 @@ const TransferHistory = () => {
                                 filteredTransactions.map((tx) => (
                                     <tr key={tx.transactionId || tx.id} className="border-b hover:bg-muted/30 transition">
                                         <td className="p-4 text-center">
-                                            {/* Inline logic for the Badge */}
                                             <Badge
                                                 variant={tx.type === 'OUT' ? 'destructive' : 'default'}
                                                 className={`uppercase text-[10px] ${
