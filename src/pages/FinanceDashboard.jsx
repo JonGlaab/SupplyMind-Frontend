@@ -29,9 +29,7 @@ export default function FinanceDashboard() {
   const [paymentInfoMap, setPaymentInfoMap] = useState({});
   // { [invoiceId]: { supplierPaymentId, status, executedAt, amount, currency } }
 
-  // ✅ timeline UI state
-  const [openTimelineSupplierId, setOpenTimelineSupplierId] = useState(null);
-  const [openTimelineSupplierName, setOpenTimelineSupplierName] = useState(null);
+  
 
   // ✅ Search + filters
   const [q, setQ] = useState("");
@@ -508,7 +506,12 @@ setInvoiceMap(map);
             </div>
 
             <button
-              onClick={() => navigate(`/finance/timeline/${supplierId}?name=${encodeURIComponent(po.supplierName || "")}`)}
+              onClick={() =>
+  navigate(`/finance/timeline/${supplierId}`, {
+    state: { supplierName: po.supplierName }
+  })
+}
+
 
               className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
             >
