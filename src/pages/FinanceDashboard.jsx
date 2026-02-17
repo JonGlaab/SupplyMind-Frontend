@@ -374,10 +374,18 @@ export default function FinanceDashboard() {
                     )}
 
                     <SchedulePaymentInline
-                      disabled={!connectEnabled || !(inv.status === "APPROVED" || inv.status === "SCHEDULED")}
-                      onSchedule={(amount) => handleSchedule(po.poId, inv.invoiceId, amount)}
-                      connectEnabled={connectEnabled}
-                    />
+  disabled={
+    !connectEnabled ||
+    !(
+      inv.status === "APPROVED" ||
+      inv.status === "SCHEDULED" ||
+      inv.status === "PARTIALLY_PAID"
+    )
+  }
+  onSchedule={(amount) => handleSchedule(po.poId, inv.invoiceId, amount)}
+  connectEnabled={connectEnabled}
+/>
+
 
                     {scheduledPaymentMap[inv.invoiceId] && (
                       <button
