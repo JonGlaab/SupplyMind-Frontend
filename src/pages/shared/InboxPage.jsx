@@ -92,7 +92,6 @@ export default function InboxPage() {
         // B. Connect WebSocket
         const socket = new SockJS(getWebSocketUrl());
         const stompClient = Stomp.over(socket);
-        // Disable debug logs for cleaner console
         stompClient.debug = () => {};
 
         stompClient.connect({}, () => {
@@ -146,8 +145,6 @@ export default function InboxPage() {
         (po.supplierName || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // ... (Render Logic remains exactly the same as your previous file) ...
-    // ... Copy the RETURN block from your existing file here ...
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
             {/* LEFT SIDEBAR */}

@@ -1,6 +1,6 @@
 import { Progress } from '/ui/progress';
 
-// --- Shared Logic (Exported for use in Badges/Pills elsewhere) ---
+
 export const getStatusColor = (status) => {
     if (!status) return 'bg-slate-500';
     if (status === 'DELAY_EXPECTED') return 'bg-red-500';
