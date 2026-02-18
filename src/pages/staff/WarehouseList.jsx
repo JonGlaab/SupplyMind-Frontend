@@ -11,6 +11,7 @@ import {
     ArrowLeft, Save, Loader2, BarChart3
 } from 'lucide-react';
 import {useNavigate} from "react-router-dom";
+import toast from "react-hot-toast";
 
 const WarehouseList = () => {
     const navigate = useNavigate();
