@@ -29,7 +29,9 @@ export default function FinanceDashboard() {
   const [paymentInfoMap, setPaymentInfoMap] = useState({});
   // { [invoiceId]: { supplierPaymentId, status, executedAt, amount, currency } }
 
-  
+  // ✅ timeline UI state
+  const [openTimelineSupplierId, setOpenTimelineSupplierId] = useState(null);
+  const [openTimelineSupplierName, setOpenTimelineSupplierName] = useState(null);
 
   // ✅ Search + filters
   const [q, setQ] = useState("");
