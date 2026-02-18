@@ -131,7 +131,7 @@ export default function StripePayPage() {
     };
   }, [paymentId]);
 
-  // ✅ Bright Stripe Elements UI
+  // Bright Stripe Elements UI
   const options = useMemo(() => {
     return {
       clientSecret,
