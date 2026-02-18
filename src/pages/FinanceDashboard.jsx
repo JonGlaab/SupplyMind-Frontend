@@ -115,9 +115,12 @@ export default function FinanceDashboard() {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+    useEffect(() => {
+        const token = localStorage.getItem('token'); // or whatever your auth key is
+        if (token) {
+            load();
+        }
+    }, []);
 
   const handleCreateInvoice = async (poId) => {
     const res = await createInvoiceFromPo(poId);
