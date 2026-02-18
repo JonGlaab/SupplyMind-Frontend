@@ -116,7 +116,7 @@ const App = () => {
 
         {/* Finance & Suppliers */}
         <Route path="suppliers" element={<SuppliersPage />} />
-          {/* <Route path="finance" element={<FinanceDashboard />} /> */}
+        <Route path="finance" element={<FinanceDashboard />} />
         <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
       </Route>
 
