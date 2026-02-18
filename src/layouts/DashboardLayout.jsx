@@ -17,7 +17,7 @@ import {
 import { jwtDecode } from "jwt-decode";
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
-//import NotificationBell from '../components/NotificationBell.jsx';
+import NotificationBell from '../components/NotificationBell.jsx';
 
 const DashboardLayout = () => {
     const [initials, setInitials] = useState('??');
@@ -167,9 +167,9 @@ const DashboardLayout = () => {
                             </button>
                         )}
 
-                        {/* {userRole === 'MANAGER' && (
+                        {userRole === 'MANAGER' && (
                              < NotificationBell />
-                            )} */}
+                        )}
 
                         <div className="h-9 w-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm border-2 border-white">
                             {initials}
