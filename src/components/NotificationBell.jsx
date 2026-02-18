@@ -43,23 +43,23 @@ export default function NotificationBell() {
     }, [isOpen]);
 
     // 3. Load Data
-    //const loadNotifications = async () => {
-    //    if (userRole === 'STAFF') {
-    //        return;
-    //    }
-    //    try {
-    //        const count = await NotificationService.getUnreadCount();
-    //        setUnreadCount(count);
+    const loadNotifications = async () => {
+        if (userRole === 'STAFF') {
+            return;
+        }
+        try {
+            const count = await NotificationService.getUnreadCount();
+            setUnreadCount(count);
 
             // Only fetch full list if menu is open to save bandwidth
-    //        if (isOpen) {
-    //            const list = await NotificationService.getMyNotifications();
-    //            setNotifications(list);
-    //        }
-    //    } catch (error) {
-    //        console.error("Failed to load notifications", error);
-    //    }
-    //};
+            if (isOpen) {
+                const list = await NotificationService.getMyNotifications();
+                setNotifications(list);
+            }
+        } catch (error) {
+            console.error("Failed to load notifications", error);
+        }
+    };
 
     useEffect(() => {
         loadNotifications();
