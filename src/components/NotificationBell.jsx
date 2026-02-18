@@ -62,9 +62,9 @@ export default function NotificationBell() {
     };
 
     useEffect(() => {
-        loadNotifications();
-        const interval = setInterval(loadNotifications, 60000);
-        return () => clearInterval(interval);
+        //loadNotifications();
+        //const interval = setInterval(loadNotifications, 60000);
+        //return () => clearInterval(interval);
     }, [isOpen, userRole]);
 
     if (userRole === 'STAFF') {
