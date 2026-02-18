@@ -508,17 +508,16 @@ setInvoiceMap(map);
             </div>
 
             <button
-              onClick={() =>
-  navigate(`/finance/timeline/${supplierId}`, {
-    state: { supplierName: po.supplierName }
-  })
-}
+  onClick={() =>
+    navigate(`/finance/timeline/${supplierId}`, {
+      state: { supplierName: po.supplierName }
+    })
+  }
+  className="block mt-2 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm"
+>
+  View Payment Timeline
+</button>
 
-
-              className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
-            >
-              Close
-            </button>
           </div>
 
           <PaymentTimeline supplierId={openTimelineSupplierId} supplierName={openTimelineSupplierName} />

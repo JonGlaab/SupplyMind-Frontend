@@ -79,10 +79,9 @@ const App = () => {
             <Route path="/change-password" element={<ChangePassword />} />
 
             <Route path="/" element={<DashboardLayout />}>
-            
+
                 <Route index element={<Navigate to={getRedirectPath()} replace />} />
 
-                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
 
 
                 {/* basic */}
@@ -120,6 +119,7 @@ const App = () => {
                 <Route path="manager/returns-approval/:id" element={<ReturnInspection />} />
                 <Route path="/suppliers" element={<SuppliersPage />} />
                 <Route path="/finance" element={<FinanceDashboard />} />
+                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
             </Route>
 
             <Route
