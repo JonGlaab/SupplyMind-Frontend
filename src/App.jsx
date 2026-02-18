@@ -53,99 +53,98 @@ import FinanceDashboard from "./pages/FinanceDashboard";
 import "./api/axiosConfig";
 import PaymentTimelinePage from "./pages/PaymentTimelinePage.jsx";
 
-
 const StripePayPage = lazy(() => import('./pages/StripePayPage'));
 
 const App = () => {
-    const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole');
-    const isAuthenticated = !!token;
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem('userRole');
+  const isAuthenticated = !!token;
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    const getRedirectPath = () => {
-        if (isMobileDevice) return "/mobile/home";
-        if (!isAuthenticated) return "/login";
-        switch (userRole) {
-            case 'ADMIN': return "/admin/dashboard";
-            case 'MANAGER': return "/manager/dashboard";
-            case 'PROCUREMENT_OFFICER': return "/procurement/dashboard";
-            default: return "/staff/dashboard";
+  const getRedirectPath = () => {
+    if (isMobileDevice) return "/mobile/home";
+    if (!isAuthenticated) return "/login";
+    switch (userRole) {
+      case 'ADMIN': return "/admin/dashboard";
+      case 'MANAGER': return "/manager/dashboard";
+      case 'PROCUREMENT_OFFICER': return "/procurement/dashboard";
+      default: return "/staff/dashboard";
+    }
+  };
+
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/change-password" element={<ChangePassword />} />
+
+      <Route path="/" element={<DashboardLayout />}>
+        <Route index element={<Navigate to={getRedirectPath()} replace />} />
+
+        {/* basic */}
+        <Route path="settings" element={<Settings />} />
+        <Route path="inbox" element={<InboxPage />} />
+        <Route path="purchase-order/:poId" element={<PurchaseOrderView />} />
+
+        {/* ADMIN */}
+        <Route path="admin/dashboard" element={<AdminDashboard />} />
+
+        {/* STAFF  */}
+        <Route path="staff/dashboard" element={<WarehouseDashboard />} />
+        <Route path="staff/receiving" element={<Receiving />} />
+        <Route path="staff/returnrequest" element={<ReturnRequest />} />
+        <Route path="staff/:warehouseId/transfer" element={<InventoryTransferModal />} />
+        <Route path="staff/return-request/:poId" element={<ReturnRequest />} />
+        <Route path="staff/transfer" element={<Transfer />} />
+        <Route path="staff/:warehouseId/transferhistory" element={<TransferHistory />} />
+        <Route path="staff/:warehouseId/receiving-history" element={<WarehousePOsHistory />} />
+        <Route path="staff/process/:poId" element={<ProcessOrder />} />
+        <Route path="staff/warehouselist" element={<WarehouseList />} />
+        <Route path="staff/:warehouseId/inventory" element={<WarehouseInventory />} />
+        <Route path="staff/productlist" element={<ProductList />} />
+
+        {/* PO */}
+        <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
+        <Route path="procurement/suppliers" element={<SupplierList />} />
+        <Route path="procurement/suppliers/:supplierId/products" element={<SupplierProductView />} />
+        <Route path="procurement/purchaseorders" element={<PurchaseOrders />} />
+
+        {/* MANAGER */}
+        <Route path="manager/dashboard" element={<ManagerDashboard />} />
+        <Route path="manager/po-approval" element={<PurchaseOrderApproval />} />
+        <Route path="manager/returns-approval" element={<ReturnRequestApproval />} />
+        <Route path="manager/returns-approval/:id" element={<ReturnInspection />} />
+
+        {/* Finance & Suppliers */}
+        <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="finance" element={<FinanceDashboard />} />
+        <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
+      </Route>
+
+      <Route
+        path="/payments/po/:poId"
+        element={
+          <Suspense fallback={<div className="p-8 text-center">Loading Payment Gateway...</div>}>
+            <StripePayPage />
+          </Suspense>
         }
-    };
+      />
 
-    return (
-        <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/mobile" element={<MobileLayout />}>
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<MobileHome />} />
+        <Route path="setup" element={<MobileSetup />} />
+        <Route path="qr-login" element={<MobileQRLogin />} />
+        <Route path="process/:poId" element={<MobileReceivingManifest />} />
+        <Route path="product/:productId" element={<MobileProductDetail />} />
+        <Route path="manual-lookup" element={<MobileManualLookup />} />
+        <Route path="return-request" element={<MobileReturnRequest />} />
+        <Route path="transfer" element={<MobileTransfer />} />
+        <Route path="inbound" element={<MobileInboundList />} />
+      </Route>
 
-            <Route path="/" element={<DashboardLayout />}>
-
-                <Route index element={<Navigate to={getRedirectPath()} replace />} />
-
-                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
-
-
-                {/* basic */}
-                <Route path="settings" element={<Settings />} />
-                <Route path="inbox" element={<InboxPage />} />
-                <Route path="purchase-order/:poId" element={<PurchaseOrderView />} />
-
-                {/* ADMIN */}
-                <Route path="admin/dashboard" element={<AdminDashboard />} />
-
-                {/* STAFF  */}
-                <Route path="staff/dashboard" element={<WarehouseDashboard />} />
-                <Route path="staff/receiving" element={<Receiving />} />
-                <Route path="staff/returnrequest" element={<ReturnRequest />} />
-                <Route path="staff/:warehouseId/transfer" element={< InventoryTransferModal />} />
-                <Route path="staff/return-request/:poId" element={<ReturnRequest />} />
-                <Route path="staff/transfer" element={< Transfer />} />
-                <Route path="staff/:warehouseId/transferhistory" element={<TransferHistory />} />
-                <Route path="staff/:warehouseId/receiving-history" element={<WarehousePOsHistory />} />
-                <Route path="staff/process/:poId" element={<ProcessOrder />} />
-                <Route path="staff/warehouselist" element={<WarehouseList />} />
-                <Route path="staff/:warehouseId/inventory" element={<WarehouseInventory />} />
-                <Route path="staff/productlist" element={<ProductList />} />
-
-                {/* PO */}
-                <Route path="procurement/dashboard" element={<ProcurementDashboard />} />
-                <Route path="procurement/suppliers" element={<SupplierList />} />
-                <Route path="procurement/suppliers/:supplierId/products" element={<SupplierProductView />} />
-                <Route path="procurement/purchaseorders" element={<PurchaseOrders />} />
-
-                {/* MANAGER */}
-                <Route path="manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="manager/po-approval" element={<PurchaseOrderApproval />} />
-                <Route path="manager/returns-approval" element={<ReturnRequestApproval />} />
-                <Route path="manager/returns-approval/:id" element={<ReturnInspection />} />
-                <Route path="/suppliers" element={<SuppliersPage />} />
-                <Route path="/finance" element={<FinanceDashboard />} />
-                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
-            </Route>
-
-            <Route
-                path="/payments/po/:poId"
-                element={
-                    <Suspense fallback={<div className="p-8 text-center">Loading Payment Gateway...</div>}>
-                        <StripePayPage />
-                    </Suspense>} />
-
-            <Route path="/mobile" element={<MobileLayout />}>
-                <Route index element={<Navigate to="home" replace />} />
-                <Route path="home" element={<MobileHome />} />
-                <Route path="setup" element={<MobileSetup />} />
-                <Route path="qr-login" element={<MobileQRLogin />} />
-                <Route path="process/:poId" element={<MobileReceivingManifest />} />
-                <Route path="product/:productId" element={<MobileProductDetail />} />
-                <Route path="manual-lookup" element={<MobileManualLookup />} />
-                <Route path="return-request" element={<MobileReturnRequest />} />
-                <Route path="transfer" element={<MobileTransfer />} />
-                <Route path="inbound" element={<MobileInboundList />} />
-            </Route>
-
-            <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
-        </Routes>
-    );
+      <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
+    </Routes>
+  );
 };
 
 export default App;
