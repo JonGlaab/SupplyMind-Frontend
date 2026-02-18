@@ -82,6 +82,7 @@ const App = () => {
 
                 <Route index element={<Navigate to={getRedirectPath()} replace />} />
 
+                <Route path="finance/timeline/:supplierId" element={<PaymentTimelinePage />} />
 
 
                 {/* basic */}
