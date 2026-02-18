@@ -1,46 +1,30 @@
 .login-page {
-
     min-height: 100vh;
     position: relative;
-
 }
 
-/* FULL BACKGROUND */
 .login-background {
-
     position: fixed;
     inset: 0;
-
-    background-image: url("/images/login-bg.png");
-
+    background-image: url("/images/login-bg.png"); /* !* TODO can this be removed? *!   */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-
     z-index: 0;
-
 }
 
-/* CONTAINER */
 .login-container {
-
     position: relative;
     z-index: 2;
-
     min-height: 100vh;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
 }
 
-/* LOGO */
 .login-logo-wrapper {
-
     margin-bottom: 40px;
-
     display: flex;
     justify-content: center;
     align-items: center;
@@ -48,121 +32,77 @@
 }
 
 .login-logo {
-  height: clamp(180px, 22vh, 260px);  /* bigger */
+  height: clamp(180px, 22vh, 260px);
   width: auto;
   object-fit: contain;
-
   display: block;
-
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
   outline: none !important;
 }
 
-
-
-/* GRID */
 .login-grid {
-
     display: grid;
-
     grid-template-columns: 420px 420px;
-
     gap: 28px;
-
 }
 
-/* LOGIN CARD */
 .login-card {
-
     background: rgba(255,255,255,0.96);
     backdrop-filter: blur(8px);
-
 }
 
-/* QR CARD */
 .qr-card {
-
     background: #020617;
     color: white;
-
 }
 
-/* QR CONTENT */
 .qr-content {
-
     padding: 30px;
     text-align: center;
-
 }
 
-/* ICON */
 .qr-icon-wrapper {
-
     margin-bottom: 15px;
-
 }
 
 .qr-icon {
-
     color: #60a5fa;
-
 }
 
-/* TITLE */
 .qr-title {
-
     font-size: 22px;
     font-weight: 600;
-
 }
 
-/* SUBTITLE */
 .qr-subtitle {
-
     font-size: 13px;
     color: #94a3b8;
     margin-bottom: 20px;
-
 }
 
-/* QR BOX */
 .qr-box {
-
     background: white;
     padding: 15px;
     border-radius: 10px;
-
 }
 
-/* SECURE TEXT */
 .secure-text {
-
     margin-top: 10px;
-
     font-size: 11px;
     color: #64748b;
-
     text-transform: uppercase;
-
 }
 
-/* ERROR */
 .login-error {
-
     background: #fee2e2;
     color: #991b1b;
-
     padding: 8px;
     margin-bottom: 10px;
-
 }
 
-/* FOOTER */
 .login-footer {
-
     font-size: 11px;
     text-align: center;
-
 }

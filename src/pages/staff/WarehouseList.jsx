@@ -23,7 +23,6 @@ const WarehouseList = () => {
 
     const userRole = localStorage.getItem('userRole');
 
-    // Updated to match your Entity field names
     const [formData, setFormData] = useState({
         locationName: '',
         address: '',
@@ -55,7 +54,6 @@ const WarehouseList = () => {
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            // Converts capacity to number before sending
             const payload = { ...formData, capacity: parseInt(formData.capacity) };
             await api.post('/api/core/warehouses', payload);
             setIsAdding(false);
@@ -126,7 +124,6 @@ const WarehouseList = () => {
                     </Button>
                 )}
             </div>
-
 
             <Card className="shadow-md">
                 <CardHeader>

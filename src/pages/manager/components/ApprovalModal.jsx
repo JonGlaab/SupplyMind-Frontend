@@ -13,6 +13,18 @@ const PO_STATUSES = [
     "DRAFT", "PENDING_APPROVAL", "APPROVED", "EMAIL_SENT", "SUPPLIER_REPLIED",
     "CONFIRMED", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED", "DELAY_EXPECTED"
 ];
+
+/**
+ * A modal dialog for viewing and managing the details of a Purchase Order.
+ * It allows users with appropriate permissions to approve, reject,
+ * manually update the status, and email the PO to a supplier.
+ *
+ * @param {object} props - The component's props.
+ * @param {number} props.poId - The ID of the Purchase Order to display.
+ * @param {boolean} props.isOpen - Controls whether the modal is open or closed.
+ * @param {function} props.onOpenChange - Callback function to handle modal visibility changes.
+ * @param {function} props.onPoUpdated - Callback function to execute after a PO has been successfully updated.
+ */
 export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
     const [po, setPo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -26,11 +38,15 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         if (isOpen && poId) {
             fetchPoDetails();
         } else {
+            // Reset state when modal is closed or no poId is provided
             setError('');
             setIsEmailModalOpen(false);
         }
     }, [isOpen, poId]);
 
+    /**
+     * Fetches the full details of the Purchase Order from the API.
+     */
     const fetchPoDetails = async () => {
         setLoading(true);
         setError('');
@@ -46,6 +62,10 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         }
     };
 
+    /**
+     * Handles the action of approving a Purchase Order.
+     * This is typically for POs in 'PENDING_APPROVAL' status.
+     */
     const handleApprove = async () => {
         setLoading(true);
         setError('');
@@ -61,12 +81,18 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         }
     };
 
+    /**
+     * Opens the generated PDF for the Purchase Order in a new browser tab.
+     */
     const handleViewPdf = () => {
         if (po?.pdfUrl) {
             window.open(po.pdfUrl, '_blank');
         }
     };
 
+    /**
+     * Handles the action of rejecting (cancelling) a Purchase Order.
+     */
     const handleReject = async () => {
         if (window.confirm("Are you sure you want to reject this purchase order? This will cancel it.")) {
             try {
@@ -79,6 +105,9 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         }
     };
 
+    /**
+     * Handles the manual update of a Purchase Order's status via the dropdown.
+     */
     const handleStatusUpdate = async () => {
         try {
             await api.post(`/api/core/purchase-orders/${poId}/status`, { status: selectedStatus });
@@ -89,6 +118,10 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
         }
     };
 
+    /**
+     * Renders the main view of the modal, displaying PO details and action buttons.
+     * @returns {JSX.Element} The detailed view of the purchase order.
+     */
     const renderDetailsView = () => (
         <>
             {error && (
@@ -98,6 +131,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                 </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+                {/* Left Column: PO Details */}
                 <div className="md:col-span-1 space-y-6">
                     <Card><CardHeader className="pb-2"><CardTitle className="text-base">Details</CardTitle></CardHeader>
                         <CardContent className="text-sm space-y-2">
@@ -109,6 +143,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                     <Card><CardHeader className="pb-2"><CardTitle className="text-base">Supplier</CardTitle></CardHeader><CardContent className="text-sm space-y-1"><p className="font-semibold">{po.supplierName}</p></CardContent></Card>
                     <Card><CardHeader className="pb-2"><CardTitle className="text-base">Ship To</CardTitle></CardHeader><CardContent className="text-sm space-y-1"><p className="font-semibold">{po.warehouseName}</p></CardContent></Card>
                 </div>
+                {/* Right Column: Items and Status Update */}
                 <div className="md:col-span-2 space-y-6">
                     <Card><CardHeader><CardTitle>Items</CardTitle></CardHeader>
                         <CardContent>
@@ -140,6 +175,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                     </Card>
                 </div>
             </div>
+            {/* Modal Footer Actions */}
             <DialogFooter className="sm:justify-between">
                 <div>
                     <Button variant="outline" onClick={handleViewPdf} disabled={!po?.pdfUrl}><FileText className="mr-2 h-4 w-4" /> View PDF</Button>
@@ -151,7 +187,7 @@ export function ApprovalModal({ poId, isOpen, onOpenChange, onPoUpdated }) {
                             <Button onClick={handleApprove}><Check className="mr-2 h-4 w-4" /> Approve</Button>
                         </>
                     )}
-                    {/* TRIGGER: Opens the standalone modal instead of internal view */}
+
                     {po?.status === 'APPROVED' && (
                         <Button onClick={() => setIsEmailModalOpen(true)}>
                             <Send className="mr-2 h-4 w-4" /> Email to Supplier

@@ -9,14 +9,10 @@ import {
     LogOut,
     Menu,
     X,
-    Bell,
     ShieldCheck,
     RotateCcw,
     Settings,
-    Smartphone,
     MessageCircle,
-    ClipboardCheck,
-    History
 } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 import { Badge } from '../components/ui/badge';
@@ -57,30 +53,11 @@ const DashboardLayout = () => {
     }, []);
 
     const navItems = [
-        // ADMIN-ONLY: CROSS-ROLE VIEW (THE "GOD MODE")
-        ...(userRole === 'ADMIN' ? [
-            { type: 'divider', label: 'System Shadow Views' },
-            {
-                label: 'Manager Perspective',
-                path: '/manager/dashboard',
-            },
-            {
-                label: 'Procurement Perspective',
-                path: '/procurement/dashboard',
-            },
-            {
-                label: 'Warehouse Perspective',
-                path: '/staff/dashboard',
-            }
-        ] : []),
-
-        // 1. PRIMARY DASHBOARDS
-        ...(userRole === 'ADMIN' ? [{ label: 'Admin System', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
+        ...(userRole === 'ADMIN' ? [{ label: 'Admin Dashboard', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
         ...(userRole === 'MANAGER' ? [{ label: 'Manager Dashboard', path: '/manager/dashboard', icon: <LayoutDashboard size={20} /> }] : []),
         ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
         ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> }] : []),
 
-        // 2. MANAGER
         ...(userRole === 'MANAGER' ? [
             { type: 'divider', label: 'Managerial Tools' },
             { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> },
@@ -89,14 +66,12 @@ const DashboardLayout = () => {
             { label: 'Finance and payments', path: '/finance', icon: <Package size={20} /> },
         ] : []),
 
-        // 3. PROCUREMENT TOOLS
         ...(userRole === 'PROCUREMENT_OFFICER' ? [
             { type: 'divider', label: 'Procurement & Inventory' },
             { label: 'Suppliers', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
         ] : []),
 
-        // 4. WAREHOUSE OPERATIONS
         ...(userRole === 'STAFF'? [
             { type: 'divider', label: 'Warehouse Operations' },
             { label: 'Warehouse Operations', path: '/staff/dashboard', icon: <Truck size={20} /> },
@@ -104,7 +79,6 @@ const DashboardLayout = () => {
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
         ] : []),
 
-        // 5. SYSTEM
         { type: 'divider' },
         { label: 'User Settings', path: '/settings', icon: <Settings size={20} /> }
     ];
@@ -183,7 +157,6 @@ const DashboardLayout = () => {
                         <Badge variant="outline" className="hidden sm:flex border-slate-200 text-slate-500 font-medium">
                             {userRole?.replace('_', ' ')}
                         </Badge>
-                        {/* ONLY SHOW INBOX TO NON-STAFF ROLES */}
                         {userRole === 'MANAGER' && (
                             <button
                                 onClick={() => navigate('/inbox')}

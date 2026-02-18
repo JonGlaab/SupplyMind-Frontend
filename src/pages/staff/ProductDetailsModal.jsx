@@ -55,16 +55,8 @@ const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRo
         }
     };
 
-    // TODO: Remove ADMIN for production
-
-    // --- DEVELOPMENT: Grant Admin full control ---
-    const canModify = userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN';
-    const canDelete = userRole === 'PROCUREMENT_OFFICER' || userRole === 'ADMIN';
-
-    /* --- PRODUCTION:
     const canModify = userRole === 'MANAGER' || userRole === 'PROCUREMENT_OFFICER';
     const canDelete = userRole === 'PROCUREMENT_OFFICER';
-    --- */
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -88,7 +80,6 @@ const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRo
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
                 </div>
 
-                {/* Content Area */}
                 <div className="p-8 space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-1">
@@ -133,7 +124,6 @@ const ProductDetailsModal = ({ product, isOpen, onClose, onUpdateSuccess, userRo
                     </div>
                 </div>
 
-                {/* Footer Actions */}
                 <div className="p-6 bg-slate-50 border-t flex justify-between items-center">
                     <div>
                         {!isEditing && canDelete && (

@@ -112,7 +112,6 @@ export function ReturnInspection() {
                     </Card>
                 </div>
 
-                {/* Main Content - Matching PO Items Table style */}
                 <div className="md:col-span-2">
                     <Card>
                         <CardHeader><CardTitle>Line Item Verification</CardTitle></CardHeader>

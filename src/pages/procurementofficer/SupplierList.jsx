@@ -50,7 +50,6 @@ const SupplierList = () => {
         }
     };
 
-    // If "isAdding" is true, show the form. Otherwise, show the table.
     if (isAdding) {
         return (
             <div className="p-6 max-w-2xl mx-auto">

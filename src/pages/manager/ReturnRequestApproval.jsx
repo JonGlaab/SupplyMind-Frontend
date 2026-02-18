@@ -61,7 +61,6 @@ const ReturnRequestApproval = () => {
                 </div>
             </div>
 
-            {/* Content Area */}
             <Card className="shadow-sm border-slate-200 overflow-hidden">
                 <CardHeader className="bg-white border-b py-4">
                     <div className="flex items-center gap-4">
@@ -137,7 +136,6 @@ const ReturnRequestApproval = () => {
     );
 };
 
-// Helper for Badge styling
 const getStatusVariant = (status) => {
     switch (status) {
         case 'REQUESTED': return 'warning';

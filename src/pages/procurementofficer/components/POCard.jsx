@@ -4,7 +4,6 @@ import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { Progress } from '../../../components/ui/progress';
 
-// Maps your DB Status strings to UI steps
 const statusToStep = {
     'DRAFT': 1,
     'SENT': 2,
@@ -56,7 +55,6 @@ export function POCard({ po, onViewDetails }) {
             </CardHeader>
 
             <CardContent className="space-y-6">
-                {/* Progress Steps */}
                 <div>
                     <div className="space-y-2">
                         <Progress value={(currentStep / steps.length) * 100} className="h-2" />
@@ -77,7 +75,6 @@ export function POCard({ po, onViewDetails }) {
                     </div>
                 </div>
 
-                {/* Items from purchaseOrderItems Set */}
                 <div className="border-t border-border pt-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Order Items</p>
                     <div className="space-y-2">
