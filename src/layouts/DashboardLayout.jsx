@@ -54,12 +54,9 @@ const DashboardLayout = () => {
 
     const navItems = [
         ...(userRole === 'ADMIN' ? [{ label: 'Admin Dashboard', path: '/admin/dashboard', icon: <ShieldCheck size={20} /> }] : []),
-        ...(userRole === 'MANAGER' ? [{ label: 'Manager Dashboard', path: '/manager/dashboard', icon: <LayoutDashboard size={20} /> }] : []),
-        ...(userRole === 'PROCUREMENT_OFFICER' ? [{ label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> }] : []),
-        ...(userRole === 'STAFF' ? [{ label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> }] : []),
 
         ...(userRole === 'MANAGER' ? [
-            { type: 'divider', label: 'Managerial Tools' },
+            { label: 'Sales Forecasting', path: '/manager/dashboard', icon: <LayoutDashboard size={20} /> },
             { label: 'PO Approvals', path: '/manager/po-approval', icon: <ShieldCheck size={20} /> },
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
             { label: 'Master Product List', path: '/staff/productlist', icon: <Package size={20} /> },
@@ -67,15 +64,14 @@ const DashboardLayout = () => {
         ] : []),
 
         ...(userRole === 'PROCUREMENT_OFFICER' ? [
-            { type: 'divider', label: 'Procurement & Inventory' },
+            { label: 'Procurement Hub', path: '/procurement/dashboard', icon: <ShoppingCart size={20} /> },
             { label: 'Suppliers', path: '/procurement/suppliers', icon: <Users size={20} /> },
             { label: 'Purchase Orders', path: '/procurement/purchaseorders', icon: <ShoppingCart size={20} /> },
         ] : []),
 
         ...(userRole === 'STAFF'? [
-            { type: 'divider', label: 'Warehouse Operations' },
-            { label: 'Warehouse Operations', path: '/staff/dashboard', icon: <Truck size={20} /> },
-            { label: 'Initiate Return', path: '/staff/returnrequest', icon: <RotateCcw size={20} /> },
+            { label: 'Warehouse Portal', path: '/staff/dashboard', icon: <Package size={20} /> },
+            { label: 'Initiate a Return', path: '/staff/returnrequest', icon: <RotateCcw size={20} /> },
             { label: 'Inventory Network', path: '/staff/warehouselist', icon: <Truck size={20} /> },
         ] : []),
 
