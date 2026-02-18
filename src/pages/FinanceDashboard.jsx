@@ -38,6 +38,8 @@ export default function FinanceDashboard() {
   const [connectFilter, setConnectFilter] = useState("ALL"); // ALL | ENABLED | NOT_ENABLED
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState("ALL"); // ALL | NO_INVOICE | PENDING_APPROVAL | APPROVED | SCHEDULED | PARTIALLY_PAID | PAID | FAILED | PROCESSING
 
+  const navigate = useNavigate();
+
   const load = async () => {
     try {
       setLoading(true);
@@ -45,20 +47,22 @@ export default function FinanceDashboard() {
       const data = await getReadyPos();
       setPos(data);
 
-      // load invoice status for each PO
+      // ✅ load invoice status for each PO (do NOT break dashboard if some POs have no invoice yet)
       const invResults = await Promise.allSettled(
-  data.map(async (po) => [po.poId, await getInvoiceByPo(po.poId)])
-);
+        data.map(async (po) => [po.poId, await getInvoiceByPo(po.poId)])
+      );
 
-const map = {};
-invResults.forEach((r) => {
-  if (r.status === "fulfilled") {
-    const [poId, inv] = r.value;
-    map[poId] = inv; // inv can be null
-  }
-});
-setInvoiceMap(map);
-
+      const map = {};
+      invResults.forEach((r) => {
+        if (r.status === "fulfilled") {
+          const [poId, inv] = r.value;
+          map[poId] = inv; // inv can be null
+        } else {
+          // If backend returns 404/400 for "no invoice", we just treat it as null and continue
+          // (Promise.allSettled already prevents crash)
+        }
+      });
+      setInvoiceMap(map);
 
       // ✅ load latest payment per invoice from DB (survives refresh)
       const invoiceIds = Object.values(map)
@@ -94,9 +98,7 @@ setInvoiceMap(map);
       setPaymentInfoMap(pim);
 
       // load connect status for each supplier (DTO mapping)
-      const supplierIds = [
-        ...new Set(data.map((p) => p.supplierId).filter(Boolean))
-      ];
+      const supplierIds = [...new Set(data.map((p) => p.supplierId).filter(Boolean))];
 
       const statusPairs = await Promise.all(
         supplierIds.map(async (sid) => {
@@ -138,14 +140,11 @@ setInvoiceMap(map);
       amount: amount ? Number(amount) : null
     };
 
-    // backend returns Long supplierPaymentId
     const supplierPaymentId = await schedulePayment(payload);
 
-    // save so we can execute even before reload
     setScheduledPaymentMap((prev) => ({ ...prev, [invoiceId]: supplierPaymentId }));
     toast.success("Payment has been scheduled successfully.");
 
-    // refresh invoice + latest payment info
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
 
@@ -166,8 +165,6 @@ setInvoiceMap(map);
     }
   };
 
-  const navigate = useNavigate();
-
   const handleExecute = async (poId, invoiceId) => {
     const supplierPaymentId = scheduledPaymentMap[invoiceId];
 
@@ -186,7 +183,6 @@ setInvoiceMap(map);
       toast.error("Payment failed ❌: " + (res?.message || ""));
     }
 
-    // ✅ reload invoice + payment list so Paid/Remaining updates on UI
     const inv = await getInvoiceByPo(poId);
     setInvoiceMap((prev) => ({ ...prev, [poId]: inv }));
 
@@ -222,7 +218,7 @@ setInvoiceMap(map);
     return "bg-gray-500";
   };
 
-  // ✅ Filtered POs (search + connect filter + invoice status filter)
+  // ✅ Filtered POs
   const filteredPos = useMemo(() => {
     const query = q.trim().toLowerCase();
 
@@ -336,7 +332,6 @@ setInvoiceMap(map);
         {filteredPos.map((po) => {
           const inv = invoiceMap[po.poId];
 
-          // ✅ DTO mapping
           const supplierId = po.supplierId;
 
           const connectStatus = supplierId ? connectMap[supplierId] : "UNKNOWN";
@@ -386,8 +381,13 @@ setInvoiceMap(map);
                   {supplierId && (
                     <button
                       onClick={() => {
+                        // keep inline panel working
                         setOpenTimelineSupplierId(supplierId);
                         setOpenTimelineSupplierName(po.supplierName);
+
+                        // optional: if you want immediate redirect instead of inline panel,
+                        // comment the 2 lines above and uncomment the navigate below.
+                        // navigate(`/finance/timeline/${supplierId}`, { state: { supplierName: po.supplierName } });
                       }}
                       className="block mt-2 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm"
                     >
@@ -498,7 +498,7 @@ setInvoiceMap(map);
         })}
       </div>
 
-      {/* ✅ Timeline panel */}
+      {/* ✅ Timeline panel (INLINE) */}
       {openTimelineSupplierId && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
@@ -507,17 +507,29 @@ setInvoiceMap(map);
               <span className="font-medium">{openTimelineSupplierName || openTimelineSupplierId}</span>
             </div>
 
-            <button
-  onClick={() =>
-    navigate(`/finance/timeline/${supplierId}`, {
-      state: { supplierName: po.supplierName }
-    })
-  }
-  className="block mt-2 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1 rounded text-sm"
->
-  View Payment Timeline
-</button>
+            <div className="flex gap-2">
+              {/* ✅ FIXED: use openTimelineSupplierId/openTimelineSupplierName (NOT supplierId/po) */}
+              <button
+                onClick={() =>
+                  navigate(`/finance/timeline/${openTimelineSupplierId}`, {
+                    state: { supplierName: openTimelineSupplierName }
+                  })
+                }
+                className="text-sm px-3 py-1 rounded bg-slate-600 hover:bg-slate-700 text-white"
+              >
+                Open in separate page
+              </button>
 
+              <button
+                onClick={() => {
+                  setOpenTimelineSupplierId(null);
+                  setOpenTimelineSupplierName(null);
+                }}
+                className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Close
+              </button>
+            </div>
           </div>
 
           <PaymentTimeline supplierId={openTimelineSupplierId} supplierName={openTimelineSupplierName} />
